@@ -490,3 +490,150 @@ export const mockChat = {
   },
 };
 
+/* ============================================================
+   Mock Meetings
+   ============================================================ */
+
+const SEED_MEETINGS = [
+  {
+    _id: 'meet_1',
+    title: 'Sprint 14 Retrospective',
+    recordingUrl: 'https://zoom.us/rec/share/example-retro',
+    date: new Date(Date.now() - 86400000).toISOString(),
+    duration: '45 min',
+    participants: ['Arjun Patel', 'Meera Krishnan', 'Zara Ali', 'Priya Sharma'],
+    tags: ['retro', 'engineering', 'process'],
+    transcript: [
+      { time: '00:00', speaker: 'Meera Krishnan', text: 'Alright everyone, let\'s start the retro. What went well this sprint?' },
+      { time: '00:32', speaker: 'Arjun Patel', text: 'The new CI pipeline saved us about 20 minutes per deploy. That\'s been a huge win for the team.' },
+      { time: '01:15', speaker: 'Zara Ali', text: 'Design handoffs were smoother this time. The Figma-to-code component library is paying off.' },
+      { time: '02:03', speaker: 'Priya Sharma', text: 'I agree. But I think we struggled with scope creep on the settings page. We kept adding features mid-sprint.' },
+      { time: '03:10', speaker: 'Meera Krishnan', text: 'Good point. What can we do about that? Should we enforce a hard scope freeze after sprint planning?' },
+      { time: '03:45', speaker: 'Arjun Patel', text: 'Yes, and maybe add a "parking lot" in Notion for ideas that come up mid-sprint. We evaluate them in the next planning.' },
+      { time: '04:30', speaker: 'Zara Ali', text: 'That sounds solid. Also, I want to flag that QA is becoming a bottleneck. We need to invest in automated testing.' },
+      { time: '05:15', speaker: 'Meera Krishnan', text: 'Noted. Let\'s allocate 2 story points next sprint specifically for test automation. Any other concerns?' },
+      { time: '06:00', speaker: 'Priya Sharma', text: 'One more thing — async standups have been working great. I\'d vote to keep them permanent.' },
+      { time: '06:30', speaker: 'Meera Krishnan', text: 'Agreed. Let\'s make it official. Great retro everyone, thanks!' },
+    ],
+    insights: [1, 6],
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    _id: 'meet_2',
+    title: 'Product Strategy — Q2 Planning',
+    recordingUrl: 'https://meet.google.com/abc-defg-hij',
+    date: new Date(Date.now() - 259200000).toISOString(),
+    duration: '1 hr 10 min',
+    participants: ['Meera Krishnan', 'Zara Ali', 'Rahul Verma'],
+    tags: ['product', 'strategy', 'q2'],
+    transcript: [
+      { time: '00:00', speaker: 'Meera Krishnan', text: 'Let\'s align on Q2 priorities. I see three major bets: enterprise tier, API platform, and mobile app.' },
+      { time: '01:20', speaker: 'Rahul Verma', text: 'Enterprise tier is the highest revenue potential. The sales team has 4 deals blocked on SSO and audit logs.' },
+      { time: '02:45', speaker: 'Zara Ali', text: 'From a UX perspective, mobile is getting urgent. 35% of our users access the dashboard on mobile and the experience is poor.' },
+      { time: '04:00', speaker: 'Meera Krishnan', text: 'Can we do enterprise + mobile in parallel? Different teams, different codebases.' },
+      { time: '05:15', speaker: 'Rahul Verma', text: 'We\'d need to hire 2 more engineers. Budget-wise, that\'s tight unless we close at least one enterprise deal by end of Q1.' },
+      { time: '06:30', speaker: 'Meera Krishnan', text: 'Let\'s make enterprise the primary bet. Mobile gets a responsive PWA as a stopgap. API platform moves to Q3.' },
+    ],
+    insights: [1, 5],
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
+  },
+  {
+    _id: 'meet_3',
+    title: 'Design Review — Settings Redesign',
+    recordingUrl: '',
+    date: new Date(Date.now() - 172800000).toISOString(),
+    duration: '30 min',
+    participants: ['Zara Ali', 'Priya Sharma'],
+    tags: ['design', 'ux', 'settings'],
+    transcript: [
+      { time: '00:00', speaker: 'Zara Ali', text: 'I\'ve restructured the settings into 4 tabs: Profile, Security, Notifications, and Integrations.' },
+      { time: '00:45', speaker: 'Priya Sharma', text: 'This is much cleaner. The old single-page scroll was overwhelming. How does the mobile view work?' },
+      { time: '01:30', speaker: 'Zara Ali', text: 'On mobile, tabs become an accordion. Each section collapses. I tested it and it feels natural.' },
+      { time: '02:15', speaker: 'Priya Sharma', text: 'Love it. One thing — the danger zone for account deletion should have a double confirmation. It\'s too easy to click accidentally.' },
+      { time: '03:00', speaker: 'Zara Ali', text: 'Good catch. I\'ll add a type-to-confirm modal. Ship it this sprint?' },
+    ],
+    insights: [3],
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+  },
+];
+
+function ensureSeedMeetings(db) {
+  if (!db._meetingsSeeded || db._meetingsSeedVersion !== 1) {
+    db.meetings = [...SEED_MEETINGS];
+    db._meetingsSeeded = true;
+    db._meetingsSeedVersion = 1;
+    saveDB(db);
+  }
+  if (!db.meetings) db.meetings = [];
+  return db;
+}
+
+export const mockMeetings = {
+  getMeetings(filters = {}) {
+    let db = getDB();
+    db = ensureSeedMeetings(db);
+    let meetings = [...db.meetings].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (filters.keyword) {
+      const kw = filters.keyword.toLowerCase();
+      meetings = meetings.filter((m) =>
+        m.title.toLowerCase().includes(kw) ||
+        m.transcript.some((t) => t.text.toLowerCase().includes(kw))
+      );
+    }
+    if (filters.tags) {
+      const filterTags = filters.tags.split(',');
+      meetings = meetings.filter((m) => m.tags?.some((t) => filterTags.includes(t)));
+    }
+    return { meetings };
+  },
+
+  getMeeting(id) {
+    let db = getDB();
+    db = ensureSeedMeetings(db);
+    const meeting = db.meetings.find((m) => m._id === id);
+    if (!meeting) throw { response: { data: { message: 'Meeting not found' } } };
+    return { meeting };
+  },
+
+  createMeeting(token, { title, recordingUrl, date, duration, participants, tags }) {
+    const db = getDB();
+    const meeting = {
+      _id: generateId(),
+      title,
+      recordingUrl: recordingUrl || '',
+      date: date || new Date().toISOString(),
+      duration: duration || '',
+      participants: participants ? participants.split(',').map((p) => p.trim()) : [],
+      tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      transcript: [],
+      insights: [],
+      createdAt: new Date().toISOString(),
+    };
+    db.meetings.unshift(meeting);
+    saveDB(db);
+    return { meeting };
+  },
+
+  toggleTranscriptInsight(meetingId, transcriptIndex) {
+    const db = getDB();
+    const meeting = db.meetings.find((m) => m._id === meetingId);
+    if (!meeting) throw { response: { data: { message: 'Meeting not found' } } };
+    const idx = meeting.insights.indexOf(transcriptIndex);
+    if (idx > -1) {
+      meeting.insights.splice(idx, 1);
+    } else {
+      meeting.insights.push(transcriptIndex);
+    }
+    saveDB(db);
+    return { meeting };
+  },
+
+  deleteMeeting(id) {
+    const db = getDB();
+    db.meetings = db.meetings.filter((m) => m._id !== id);
+    saveDB(db);
+    return { success: true };
+  },
+};
+

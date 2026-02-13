@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
 import {
   Hash,
@@ -7,6 +7,9 @@ import {
   Sparkles,
   Lightbulb,
   MessageSquare,
+  ChevronDown,
+  X,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chat.service';
@@ -17,6 +20,13 @@ import AnonymousToggle from '../components/shared/AnonymousToggle';
 import EmptyState from '../components/shared/EmptyState';
 import { Loader } from '../components/shared/Loader';
 import styles from './Chat.module.css';
+
+const AI_PERSONAS = [
+  { key: 'investor', label: 'Investor', icon: '💰' },
+  { key: 'critical', label: 'Critical', icon: '🔍' },
+  { key: 'optimist', label: 'Optimist', icon: '🌟' },
+  { key: 'team_lead', label: 'Team Lead', icon: '👥' },
+];
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -33,15 +43,30 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
 
   // AI Insights state
+  const [aiDropdownOpen, setAIDropdownOpen] = useState(false);
+  const [selectedPersonas, setSelectedPersonas] = useState([]);
   const [showAIPreview, setShowAIPreview] = useState(false);
   const [aiLoading, setAILoading] = useState(false);
-  const [aiInsight, setAIInsight] = useState(null);
+  const [aiFeedbacks, setAIFeedbacks] = useState([]);
 
   const msgEndRef = useRef(null);
   const inputRef = useRef(null);
+  const aiDropdownRef = useRef(null);
 
   const activeConv = conversations.find((c) => c._id === activeConvId);
+  const isTeamChannel = activeConv?.type === 'team';
   const canMarkInsight = ['ceo', 'reviewer', 'team_lead'].includes(user?.role);
+
+  // Close AI dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (aiDropdownRef.current && !aiDropdownRef.current.contains(e.target)) {
+        setAIDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Load conversations
   useEffect(() => {
@@ -77,6 +102,10 @@ export default function ChatPage() {
       }
     };
     load();
+    // Reset AI state when switching conversations
+    setShowAIPreview(false);
+    setAIFeedbacks([]);
+    setSelectedPersonas([]);
   }, [activeConvId]);
 
   // Scroll to bottom on new messages
@@ -90,15 +119,15 @@ export default function ChatPage() {
     try {
       const { message } = await chatService.sendMessage(activeConvId, {
         text: text.trim(),
-        anonymous,
+        anonymous: isTeamChannel ? anonymous : false,
       });
       setMessages((prev) => [...prev, message]);
       setText('');
       setAnonymous(false);
       setShowAIPreview(false);
-      setAIInsight(null);
+      setAIFeedbacks([]);
+      setSelectedPersonas([]);
 
-      // Update conversation list
       setConversations((prev) =>
         prev.map((c) =>
           c._id === activeConvId
@@ -113,13 +142,28 @@ export default function ChatPage() {
     }
   };
 
+  const togglePersona = (key) => {
+    setSelectedPersonas((prev) =>
+      prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]
+    );
+  };
+
+  const selectAllPersonas = () => {
+    if (selectedPersonas.length === AI_PERSONAS.length) {
+      setSelectedPersonas([]);
+    } else {
+      setSelectedPersonas(AI_PERSONAS.map((p) => p.key));
+    }
+  };
+
   const handleAIInsight = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() || selectedPersonas.length === 0) return;
+    setAIDropdownOpen(false);
     setShowAIPreview(true);
     setAILoading(true);
     try {
-      const data = await aiService.getFeedback({ text: text.trim(), personas: ['team_lead'] });
-      setAIInsight(data.feedbacks[0]);
+      const data = await aiService.getFeedback({ text: text.trim(), personas: selectedPersonas });
+      setAIFeedbacks(data.feedbacks);
     } catch (err) {
       console.error('AI insight failed:', err);
     } finally {
@@ -287,19 +331,35 @@ export default function ChatPage() {
               <div ref={msgEndRef} />
             </div>
 
-            {/* AI Insight preview */}
-            {showAIPreview && (
+            {/* AI Insight preview — multiple personas */}
+            {showAIPreview && isTeamChannel && (
               <div className={styles['ai-preview']} style={{ margin: `0 var(--space-5)` }}>
                 <div className={styles['ai-preview-header']}>
                   <Sparkles size={12} />
                   AI Insight Preview
+                  <button
+                    onClick={() => { setShowAIPreview(false); setAIFeedbacks([]); }}
+                    style={{ marginLeft: 'auto', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
                 {aiLoading ? (
                   <p className={styles['ai-preview-text']}>Analyzing your message...</p>
-                ) : aiInsight ? (
-                  <p className={styles['ai-preview-text']}>
-                    <strong>{aiInsight.persona}:</strong> {aiInsight.feedback}
-                  </p>
+                ) : aiFeedbacks.length > 0 ? (
+                  <div className={styles['ai-feedback-list']}>
+                    {aiFeedbacks.map((fb) => {
+                      const persona = AI_PERSONAS.find((p) => p.key === fb.persona);
+                      return (
+                        <div key={fb.persona} className={styles['ai-feedback-item']}>
+                          <span className={styles['ai-feedback-persona']}>
+                            {persona?.icon} {persona?.label}
+                          </span>
+                          <p className={styles['ai-preview-text']}>{fb.feedback}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : null}
               </div>
             )}
@@ -320,18 +380,66 @@ export default function ChatPage() {
                   Send
                 </Button>
               </div>
-              <div className={styles['msg-input-controls']}>
-                <AnonymousToggle active={anonymous} onChange={setAnonymous} label="Send Anonymously" />
-                <button
-                  className={`${styles['msg-action-btn']}`}
-                  onClick={handleAIInsight}
-                  title="Send with AI Insights"
-                  style={{ width: 'auto', padding: '4px 8px', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '4px', color: showAIPreview ? 'var(--accent-secondary)' : undefined }}
-                >
-                  <Sparkles size={12} />
-                  AI Insights
-                </button>
-              </div>
+
+              {/* Controls — only show anon + AI for team channels */}
+              {isTeamChannel && (
+                <div className={styles['msg-input-controls']}>
+                  <AnonymousToggle active={anonymous} onChange={setAnonymous} label="Send Anonymously" />
+
+                  {/* AI Persona Picker */}
+                  <div ref={aiDropdownRef} style={{ position: 'relative' }}>
+                    <button
+                      className={styles['ai-trigger']}
+                      onClick={() => setAIDropdownOpen(!aiDropdownOpen)}
+                    >
+                      <Sparkles size={12} />
+                      AI Insights
+                      {selectedPersonas.length > 0 && (
+                        <span className={styles['ai-trigger-badge']}>{selectedPersonas.length}</span>
+                      )}
+                      <ChevronDown size={12} />
+                    </button>
+
+                    {aiDropdownOpen && (
+                      <div className={styles['ai-dropdown']}>
+                        <div className={styles['ai-dropdown-header']}>
+                          <span>Select Personas</span>
+                          <button
+                            className={styles['ai-dropdown-select-all']}
+                            onClick={selectAllPersonas}
+                          >
+                            {selectedPersonas.length === AI_PERSONAS.length ? 'Deselect All' : 'Select All'}
+                          </button>
+                        </div>
+                        {AI_PERSONAS.map((p) => {
+                          const isSelected = selectedPersonas.includes(p.key);
+                          return (
+                            <button
+                              key={p.key}
+                              className={`${styles['ai-dropdown-item']} ${isSelected ? styles['ai-dropdown-item--selected'] : ''}`}
+                              onClick={() => togglePersona(p.key)}
+                            >
+                              <span className={styles['ai-dropdown-check']}>
+                                {isSelected && <Check size={12} />}
+                              </span>
+                              <span>{p.icon}</span>
+                              <span>{p.label}</span>
+                            </button>
+                          );
+                        })}
+                        <button
+                          className={styles['ai-dropdown-go']}
+                          onClick={handleAIInsight}
+                          disabled={selectedPersonas.length === 0 || !text.trim()}
+                        >
+                          <Sparkles size={12} />
+                          Get Feedback{selectedPersonas.length > 0 ? ` (${selectedPersonas.length})` : ''}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : (

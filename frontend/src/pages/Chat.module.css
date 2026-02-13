@@ -336,6 +336,8 @@
   border-left: 3px solid var(--accent-secondary);
   border-radius: var(--radius-md);
   animation: slideUp var(--duration-fast) var(--ease-out) both;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .ai-preview-header {
@@ -356,6 +358,170 @@
   line-height: var(--lh-relaxed);
   font-style: italic;
   font-family: var(--font-display);
+  margin: 0;
+}
+
+.ai-feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-feedback-item {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ai-feedback-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.ai-feedback-persona {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--accent-secondary);
+  margin-bottom: var(--space-1);
+  display: block;
+}
+
+/* AI Trigger Button */
+.ai-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.ai-trigger:hover {
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+}
+
+.ai-trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-secondary);
+  color: white;
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+}
+
+/* AI Dropdown */
+.ai-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  z-index: var(--z-dropdown);
+  animation: scaleIn var(--duration-fast) var(--ease-spring) both;
+  overflow: hidden;
+}
+
+.ai-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+.ai-dropdown-select-all {
+  font-size: var(--fs-xs);
+  color: var(--accent-secondary);
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: var(--fw-medium);
+}
+
+.ai-dropdown-select-all:hover {
+  text-decoration: underline;
+}
+
+.ai-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.ai-dropdown-item:hover {
+  background: var(--bg-hover);
+}
+
+.ai-dropdown-item--selected {
+  color: var(--accent-secondary);
+  background: var(--accent-secondary-muted);
+}
+
+.ai-dropdown-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.ai-dropdown-item--selected .ai-dropdown-check {
+  background: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+  color: white;
+}
+
+.ai-dropdown-go {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: white;
+  background: var(--accent-secondary);
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-out);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ai-dropdown-go:hover {
+  opacity: 0.9;
+}
+
+.ai-dropdown-go:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Empty state */
