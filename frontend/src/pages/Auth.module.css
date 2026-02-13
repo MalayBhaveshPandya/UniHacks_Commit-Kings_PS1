@@ -1,0 +1,297 @@
+/* Shared Auth Styles — Login & Signup */
+
+.page {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Left decorative panel */
+.panel {
+  flex: 0 0 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-16);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 100% 80% at 20% 20%, var(--accent-muted) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, var(--accent-secondary-muted) 0%, transparent 50%),
+    var(--bg-surface);
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent,
+      transparent 60px,
+      var(--border-subtle) 60px,
+      var(--border-subtle) 61px),
+    repeating-linear-gradient(90deg,
+      transparent,
+      transparent 60px,
+      var(--border-subtle) 60px,
+      var(--border-subtle) 61px);
+  opacity: 0.3;
+}
+
+.panel-content {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-10);
+}
+
+.panel-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--fs-2xl);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow);
+}
+
+.panel-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  color: var(--text-primary);
+}
+
+.panel-name span {
+  color: var(--accent);
+}
+
+.panel-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--fs-3xl);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+  margin-bottom: var(--space-6);
+  max-width: 400px;
+  animation: slideUp var(--duration-slower) var(--ease-out) both;
+}
+
+.panel-desc {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  max-width: 380px;
+  animation: slideUp var(--duration-slower) var(--ease-out) 100ms both;
+}
+
+.panel-features {
+  margin-top: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  animation: slideUp var(--duration-slower) var(--ease-out) 200ms both;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.feature-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Right form panel */
+.form-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background: var(--bg-base);
+}
+
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  animation: scaleIn var(--duration-slow) var(--ease-out) both;
+}
+
+.form-header {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.form-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-subtitle {
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+}
+
+.form-subtitle a {
+  color: var(--accent);
+  font-weight: var(--fw-medium);
+  transition: opacity var(--duration-fast);
+}
+
+.form-subtitle a:hover {
+  opacity: 0.8;
+}
+
+/* Form fields */
+.field {
+  margin-bottom: var(--space-5);
+}
+
+.label {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6862' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.error-msg {
+  margin-top: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--accent-danger);
+}
+
+.form-error {
+  background: var(--accent-danger-muted);
+  border: 1px solid var(--accent-danger);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  font-size: var(--fs-sm);
+  color: var(--accent-danger);
+  animation: scaleIn var(--duration-fast) var(--ease-out) both;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wider);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
+.theme-toggle-auth {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  transition: all var(--duration-fast) var(--ease-out);
+  z-index: 10;
+}
+
+.theme-toggle-auth:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .panel {
+    display: none;
+  }
+
+  .form-side {
+    padding: var(--space-6);
+  }
+}

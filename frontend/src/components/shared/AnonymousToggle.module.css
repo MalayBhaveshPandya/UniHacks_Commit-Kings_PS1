@@ -1,0 +1,57 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.toggle:hover {
+  background: var(--bg-hover);
+}
+
+.track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--border-default);
+  transition: background var(--duration-base) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.track--active {
+  background: var(--accent);
+}
+
+.thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--text-primary);
+  transition: transform var(--duration-base) var(--ease-spring);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.track--active .thumb {
+  transform: translateX(18px);
+  background: var(--text-inverse);
+}
+
+.label {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.label--active {
+  color: var(--accent);
+}
