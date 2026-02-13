@@ -337,3 +337,156 @@ export const mockAI = {
     return { feedbacks };
   },
 };
+
+/* ============================================================
+   Mock Chat
+   ============================================================ */
+
+const SEED_CONVERSATIONS = [
+  {
+    _id: 'conv_general',
+    name: 'General',
+    type: 'team',
+    participants: [],
+    lastMessage: { text: 'Welcome to the team channel!', createdAt: new Date(Date.now() - 3600000).toISOString() },
+  },
+  {
+    _id: 'conv_engineering',
+    name: 'Engineering',
+    type: 'team',
+    participants: [],
+    lastMessage: { text: 'PR #142 is ready for review.', createdAt: new Date(Date.now() - 7200000).toISOString() },
+  },
+  {
+    _id: 'conv_design',
+    name: 'Design',
+    type: 'team',
+    participants: [],
+    lastMessage: { text: 'New mockups uploaded to Figma.', createdAt: new Date(Date.now() - 14400000).toISOString() },
+  },
+  {
+    _id: 'conv_dm_1',
+    name: 'Arjun Patel',
+    type: 'dm',
+    participants: ['seed_user_1'],
+    lastMessage: { text: 'Can you review the deploy script?', createdAt: new Date(Date.now() - 1800000).toISOString() },
+  },
+  {
+    _id: 'conv_dm_2',
+    name: 'Meera Krishnan',
+    type: 'dm',
+    participants: ['seed_user_2'],
+    lastMessage: { text: 'Board deck looks great 👏', createdAt: new Date(Date.now() - 5400000).toISOString() },
+  },
+];
+
+const SEED_MESSAGES = {
+  conv_general: [
+    { _id: 'msg_g1', text: 'Welcome everyone! Use this channel for general discussions.', author: { _id: 'seed_user_2', name: 'Meera Krishnan' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 86400000).toISOString() },
+    { _id: 'msg_g2', text: 'Reminder: All-hands meeting tomorrow at 11 AM. Agenda pinned in #engineering.', author: { _id: 'seed_user_1', name: 'Arjun Patel' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 43200000).toISOString() },
+    { _id: 'msg_g3', text: 'I think we should reconsider the launch date. The pressure is affecting code quality.', author: null, anonymous: true, isInsight: false, createdAt: new Date(Date.now() - 21600000).toISOString() },
+    { _id: 'msg_g4', text: 'Totally agree with the anonymous message above. Quality should come first.', author: { _id: 'seed_user_3', name: 'Zara Ali' }, anonymous: false, isInsight: true, createdAt: new Date(Date.now() - 18000000).toISOString() },
+    { _id: 'msg_g5', text: 'Welcome to the team channel!', author: { _id: 'seed_user_2', name: 'Meera Krishnan' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 3600000).toISOString() },
+  ],
+  conv_engineering: [
+    { _id: 'msg_e1', text: 'Deployed v2.3.1 to staging. Smoke tests passing.', author: { _id: 'seed_user_1', name: 'Arjun Patel' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 28800000).toISOString() },
+    { _id: 'msg_e2', text: 'Found a memory leak in the WebSocket handler — GC not cleaning up listeners. Fix incoming.', author: { _id: 'seed_user_1', name: 'Arjun Patel' }, anonymous: false, isInsight: true, createdAt: new Date(Date.now() - 14400000).toISOString() },
+    { _id: 'msg_e3', text: 'PR #142 is ready for review.', author: { _id: 'seed_user_3', name: 'Zara Ali' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 7200000).toISOString() },
+  ],
+  conv_design: [
+    { _id: 'msg_d1', text: 'New mockups uploaded to Figma. Link: figma.com/team/...', author: { _id: 'seed_user_3', name: 'Zara Ali' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 14400000).toISOString() },
+  ],
+  conv_dm_1: [
+    { _id: 'msg_dm1_1', text: 'Hey, can you review the deploy script I pushed?', author: { _id: 'seed_user_1', name: 'Arjun Patel' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 7200000).toISOString() },
+    { _id: 'msg_dm1_2', text: 'Can you review the deploy script?', author: { _id: 'seed_user_1', name: 'Arjun Patel' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 1800000).toISOString() },
+  ],
+  conv_dm_2: [
+    { _id: 'msg_dm2_1', text: 'The board deck is almost ready. Can you check slide 7?', author: { _id: 'seed_user_2', name: 'Meera Krishnan' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 10800000).toISOString() },
+    { _id: 'msg_dm2_2', text: 'Board deck looks great 👏', author: { _id: 'seed_user_2', name: 'Meera Krishnan' }, anonymous: false, isInsight: false, createdAt: new Date(Date.now() - 5400000).toISOString() },
+  ],
+};
+
+function ensureSeedChat(db) {
+  if (!db._chatSeeded || db._chatSeedVersion !== 1) {
+    db.conversations = [...SEED_CONVERSATIONS];
+    db.messages = { ...SEED_MESSAGES };
+    db._chatSeeded = true;
+    db._chatSeedVersion = 1;
+    saveDB(db);
+  }
+  if (!db.conversations) db.conversations = [];
+  if (!db.messages) db.messages = {};
+  return db;
+}
+
+export const mockChat = {
+  getConversations() {
+    let db = getDB();
+    db = ensureSeedChat(db);
+    return {
+      conversations: db.conversations.sort((a, b) => {
+        const aTime = a.lastMessage?.createdAt || a.createdAt || '';
+        const bTime = b.lastMessage?.createdAt || b.createdAt || '';
+        return new Date(bTime) - new Date(aTime);
+      })
+    };
+  },
+
+  getMessages(conversationId) {
+    let db = getDB();
+    db = ensureSeedChat(db);
+    const messages = db.messages[conversationId] || [];
+    return { messages: [...messages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) };
+  },
+
+  sendMessage(token, conversationId, { text, anonymous }) {
+    const user = getCurrentUser(token);
+    const db = getDB();
+    if (!db.messages[conversationId]) db.messages[conversationId] = [];
+    const msg = {
+      _id: generateId(),
+      text,
+      anonymous: !!anonymous,
+      author: anonymous ? null : { _id: user?._id, name: user?.name },
+      isInsight: false,
+      createdAt: new Date().toISOString(),
+    };
+    db.messages[conversationId].push(msg);
+
+    // Update lastMessage on conversation
+    const conv = db.conversations.find((c) => c._id === conversationId);
+    if (conv) {
+      conv.lastMessage = { text: msg.text, createdAt: msg.createdAt };
+    }
+    saveDB(db);
+    return { message: msg };
+  },
+
+  markMessageInsight(conversationId, messageId) {
+    const db = getDB();
+    const msgs = db.messages[conversationId] || [];
+    const msg = msgs.find((m) => m._id === messageId);
+    if (!msg) throw { response: { data: { message: 'Message not found' } } };
+    msg.isInsight = !msg.isInsight;
+    saveDB(db);
+    return { message: msg };
+  },
+
+  createConversation(token, { name, type, participantIds }) {
+    const user = getCurrentUser(token);
+    const db = getDB();
+    const conv = {
+      _id: generateId(),
+      name,
+      type: type || 'dm',
+      participants: participantIds || [],
+      lastMessage: null,
+      createdAt: new Date().toISOString(),
+    };
+    db.conversations.push(conv);
+    db.messages[conv._id] = [];
+    saveDB(db);
+    return { conversation: conv };
+  },
+};
+
