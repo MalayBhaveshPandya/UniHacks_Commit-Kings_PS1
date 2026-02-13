@@ -107,7 +107,7 @@ const SEED_POSTS = [
     anonymous: false,
     author: { _id: 'seed_user_1', name: 'Arjun Patel', role: 'team_lead' },
     tags: ['engineering', 'accessibility'],
-    reactions: { '🔥': ['u1', 'u2'], '💡': ['u3'], '👏': ['u4', 'u5', 'u6'] },
+    reactions: { fire: ['u1', 'u2'], insightful: ['u3'], like: ['u4', 'u5', 'u6'] },
     comments: [
       { _id: 'c1', text: 'Agree — let\'s add 2 days next sprint for the audit.', author: { _id: 'u2', name: 'Priya Sharma' }, anonymous: false, createdAt: new Date(Date.now() - 3600000).toISOString() },
       { _id: 'c2', text: 'Accessibility is non-negotiable. Good call raising this.', author: null, anonymous: true, createdAt: new Date(Date.now() - 1800000).toISOString() },
@@ -123,7 +123,7 @@ const SEED_POSTS = [
     anonymous: false,
     author: { _id: 'seed_user_2', name: 'Meera Krishnan', role: 'ceo' },
     tags: ['process', 'team'],
-    reactions: { '👏': ['u1', 'u2', 'u3', 'u4'], '💡': ['u5'] },
+    reactions: { like: ['u1', 'u2', 'u3', 'u4'], insightful: ['u5'] },
     comments: [],
     isInsight: false,
     aiToggle: false,
@@ -136,7 +136,7 @@ const SEED_POSTS = [
     anonymous: true,
     author: null,
     tags: ['process', 'meetings'],
-    reactions: { '🔥': ['u1'], '💡': ['u2', 'u3', 'u4'] },
+    reactions: { fire: ['u1'], insightful: ['u2', 'u3', 'u4'] },
     comments: [
       { _id: 'c3', text: 'This is exactly what we need. Standups eat 30 min daily for a 5-person team.', author: { _id: 'u3', name: 'Rahul Verma' }, anonymous: false, createdAt: new Date(Date.now() - 10800000).toISOString() },
     ],
@@ -151,7 +151,7 @@ const SEED_POSTS = [
     anonymous: false,
     author: { _id: 'seed_user_3', name: 'Zara Ali', role: 'member' },
     tags: ['product', 'ux-research'],
-    reactions: { '💡': ['u1', 'u2'], '👀': ['u3', 'u4', 'u5'] },
+    reactions: { insightful: ['u1', 'u2'], repost: ['u3', 'u4', 'u5'] },
     comments: [],
     isInsight: true,
     aiToggle: false,
@@ -164,7 +164,7 @@ const SEED_POSTS = [
     anonymous: false,
     author: { _id: 'seed_user_1', name: 'Arjun Patel', role: 'team_lead' },
     tags: ['engineering', 'incident'],
-    reactions: { '👀': ['u1', 'u2', 'u3'] },
+    reactions: { like: ['u1', 'u2', 'u3'] },
     comments: [
       { _id: 'c4', text: 'Scheduling post-mortem for Thursday 2 PM. Everyone impacted please join.', author: { _id: 'seed_user_2', name: 'Meera Krishnan' }, anonymous: false, createdAt: new Date(Date.now() - 36000000).toISOString() },
     ],
@@ -174,10 +174,15 @@ const SEED_POSTS = [
   },
 ];
 
+const SEED_VERSION = 2; // bump this when seed data changes
+
 function ensureSeedPosts(db) {
-  if (!db._seeded) {
+  if (!db._seeded || db._seedVersion !== SEED_VERSION) {
+    // Clear old seed data and re-seed
+    db.posts = db.posts.filter((p) => !p._id?.startsWith('seed_'));
     db.posts = [...SEED_POSTS, ...db.posts];
     db._seeded = true;
+    db._seedVersion = SEED_VERSION;
     saveDB(db);
   }
   return db;

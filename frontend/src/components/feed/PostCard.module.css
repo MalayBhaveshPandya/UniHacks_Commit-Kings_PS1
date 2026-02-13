@@ -14,12 +14,9 @@
   border-color: var(--border-strong);
 }
 
-/* Insight ribbon */
+/* Insight badge — inline in header */
 .insight-badge {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
@@ -31,14 +28,33 @@
   color: var(--accent);
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
+  margin-left: var(--space-2);
+  flex-shrink: 0;
 }
 
 /* Header */
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--space-3);
+  gap: var(--space-3);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  position: relative;
 }
 
 .author {
@@ -177,14 +193,15 @@
 /* Dropdown menu */
 .dropdown {
   position: absolute;
-  top: calc(var(--space-3) + 28px + 4px);
-  right: var(--space-3);
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: var(--space-1);
-  min-width: 150px;
+  min-width: 170px;
   z-index: var(--z-dropdown);
   animation: scaleIn var(--duration-fast) var(--ease-spring) both;
 }

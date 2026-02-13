@@ -34,18 +34,13 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const hasMenuItems = canMarkInsight || isAuthor;
+
   return (
     <article className={styles.card}>
-      {/* Insight badge */}
-      {post.isInsight && (
-        <div className={styles['insight-badge']}>
-          <Lightbulb size={10} /> Insight
-        </div>
-      )}
-
       {/* Header */}
       <div className={styles.header}>
-        <div className={styles.author}>
+        <div className={styles['header-left']}>
           <Avatar
             name={post.anonymous ? null : post.author?.name}
             anonymous={post.anonymous}
@@ -67,41 +62,53 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
           </div>
         </div>
 
-        <div ref={menuRef} style={{ position: 'relative' }}>
-          <button
-            className={styles['menu-btn']}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Post options"
-          >
-            <MoreHorizontal size={16} />
-          </button>
-          {menuOpen && (
-            <div className={styles.dropdown}>
-              {canMarkInsight && (
-                <button
-                  className={styles['dropdown-item']}
-                  onClick={() => {
-                    onMarkInsight?.(post._id);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Bookmark size={14} />
-                  {post.isInsight ? 'Remove Insight' : 'Mark as Insight'}
-                </button>
+        <div className={styles['header-right']} ref={menuRef}>
+          {/* Insight badge inline */}
+          {post.isInsight && (
+            <span className={styles['insight-badge']}>
+              <Lightbulb size={10} /> Insight
+            </span>
+          )}
+
+          {/* Menu button */}
+          {hasMenuItems && (
+            <>
+              <button
+                className={styles['menu-btn']}
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Post options"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {menuOpen && (
+                <div className={styles.dropdown}>
+                  {canMarkInsight && (
+                    <button
+                      className={styles['dropdown-item']}
+                      onClick={() => {
+                        onMarkInsight?.(post._id);
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <Bookmark size={14} />
+                      {post.isInsight ? 'Remove Insight' : 'Mark as Insight'}
+                    </button>
+                  )}
+                  {isAuthor && (
+                    <button
+                      className={`${styles['dropdown-item']} ${styles['dropdown-item--danger']}`}
+                      onClick={() => {
+                        onDelete?.(post._id);
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
+                  )}
+                </div>
               )}
-              {isAuthor && (
-                <button
-                  className={`${styles['dropdown-item']} ${styles['dropdown-item--danger']}`}
-                  onClick={() => {
-                    onDelete?.(post._id);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
-              )}
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -121,7 +128,7 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
       )}
 
       {/* Reactions */}
-      <ReactionBar reactions={post.reactions} onReact={(emoji) => onReact?.(post._id, emoji)} />
+      <ReactionBar reactions={post.reactions} onReact={(key) => onReact?.(post._id, key)} />
 
       {/* Footer actions */}
       <div className={styles.footer}>
@@ -131,7 +138,7 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
             onClick={() => setShowComments(!showComments)}
           >
             <MessageCircle size={14} />
-            {post.comments?.length || 0}
+            {post.comments?.length > 0 ? `${post.comments.length} Comments` : 'Comment'}
           </button>
 
           {post.aiToggle && (
