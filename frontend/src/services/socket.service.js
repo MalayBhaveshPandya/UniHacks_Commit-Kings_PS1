@@ -35,15 +35,15 @@ export const socketService = {
     });
 
     socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
+      console.log('✅ [Socket] Connected:', socket.id);
     });
 
     socket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err.message);
+      console.error('❌ [Socket] Connection Error:', err.message);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
+      console.warn('⚠️ [Socket] Disconnected:', reason);
     });
 
     return socket;
@@ -73,11 +73,13 @@ export const socketService = {
    */
   joinRoom(conversationId) {
     if (!socket || !conversationId) return;
+    console.log(`[Socket] Attempting to join room: ${conversationId}`);
     if (socket.connected) {
       socket.emit('join_room', conversationId);
     } else {
       // Wait for socket to connect, then join
       socket.once('connect', () => {
+        console.log(`[Socket] Connected, joining room: ${conversationId}`);
         socket.emit('join_room', conversationId);
       });
     }
@@ -101,7 +103,10 @@ export const socketService = {
     if (!socket) return () => { };
     // Capture socket reference in closure so cleanup is safe even after disconnect
     const s = socket;
-    s.on('receive_message', callback);
+    s.on('receive_message', (data) => {
+      console.log('📩 [Socket] Received message:', data);
+      callback(data);
+    });
     return () => {
       try { s.off('receive_message', callback); } catch (_) { /* already cleaned up */ }
     };

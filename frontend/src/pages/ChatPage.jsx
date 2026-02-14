@@ -183,8 +183,19 @@ export default function ChatPage() {
     // Join the conversation room
     socketService.joinRoom(activeConvId);
 
+    const socket = socketService.getSocket();
+    const handleReconnection = () => {
+      console.log(`[ChatPage] Socket reconnected using logic, re-joining room: ${activeConvId}`);
+      socketService.joinRoom(activeConvId);
+    };
+
+    if (socket) {
+      socket.on('connect', handleReconnection);
+    }
+
     // Listen for real-time messages from other users
     const unsubscribe = socketService.onNewMessage((data) => {
+      console.log('[ChatPage] Message received event triggered', data);
       if (data.conversationId === activeConvId) {
         setMessages((prev) => {
           // Deduplicate: if the message already exists (sender added it optimistically), skip
@@ -205,6 +216,9 @@ export default function ChatPage() {
 
     return () => {
       socketService.leaveRoom(activeConvId);
+      if (socket) {
+        socket.off('connect', handleReconnection);
+      }
       unsubscribe();
     };
   }, [activeConvId]);
