@@ -3,6 +3,7 @@ const Insight = require('../models/Insight');
 const Message = require('../models/Message');
 const Post = require('../models/Post');
 const crypto = require('crypto');
+const fs = require('fs');
 
 // Create a new meeting (log one)
 exports.createMeeting = async (req, res) => {
@@ -137,6 +138,80 @@ Keep it concise (under 300 words). Use bullet points.`
     } catch (error) {
         console.error("Error summarizing transcript:", error);
         res.status(500).json({ message: "Failed to generate summary." });
+    }
+};
+
+// Transcribe audio file using Gemini
+exports.transcribeAudio = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No audio file uploaded" });
+        }
+
+        // Read file and convert to base64
+        const audioBuffer = fs.readFileSync(req.file.path);
+        const base64Audio = audioBuffer.toString('base64');
+        const mimeType = req.file.mimetype;
+
+        const OpenAI = require('openai');
+        const openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPENROUTER_API_KEY,
+        });
+        const MODEL = "google/gemini-2.0-flash-lite-001"; // Supports audio
+
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: "Transcribe this audio file exactly as spoken. format it as lines with speaker placeholders like 'Speaker: text'."
+                        },
+                        {
+                            type: "image_url", // OpenRouter/Gemini uses image_url structure for multi-modal but with audio mime type data URI
+                            image_url: {
+                                url: `data:${mimeType};base64,${base64Audio}`
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Cleanup uploaded file
+        fs.unlinkSync(req.file.path);
+
+        const transcriptText = completion.choices?.[0]?.message?.content || "";
+
+        // Parse the text into structured objects if possible, otherwise return raw lines
+        const lines = transcriptText.split('\n').filter(line => line.trim() !== '').map((line, index) => {
+            // Simple heuristic to split Speaker: Text
+            const match = line.match(/^(.*?):\s*(.*)$/);
+            const time = `${Math.floor(index * 5 / 60)}:${String(index * 5 % 60).padStart(2, '0')}`;
+            if (match) {
+                return {
+                    time,
+                    speaker: match[1].trim(),
+                    text: match[2].trim()
+                };
+            }
+            return {
+                time,
+                speaker: "Speaker",
+                text: line.trim()
+            };
+        });
+
+        res.json({ transcript: lines });
+
+    } catch (error) {
+        console.error("Error transcribing audio:", error);
+        // Attempt cleanup
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: "Failed to transcribe audio." });
     }
 };
 

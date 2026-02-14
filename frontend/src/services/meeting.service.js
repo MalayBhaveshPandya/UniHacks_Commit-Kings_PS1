@@ -57,6 +57,18 @@ export const meetingService = {
     return data;
   },
 
+  // Transcribe audio file
+  async transcribeAudio(file) {
+    const formData = new FormData();
+    formData.append('audio', file);
+    const { data } = await api.post('/meetings/transcribe', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return data;
+  },
+
   async toggleTranscriptInsight(meetingId, transcriptIndex) {
     if (USE_MOCK) {
       await delay(100);

@@ -327,10 +327,33 @@ export default function MeetingsPage() {
   };
 
   // Handle audio file drop/upload
-  const handleAudioUpload = (e) => {
+  const handleAudioUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setRecordedAudio(file);
+      // Auto-transcribe
+      setTranscribing(true);
+      try {
+        const { transcript } = await meetingService.transcribeAudio(file);
+        // Convert structured transcript to text format for the textarea
+        const text = transcript.map(t => `${t.speaker}: ${t.text}`).join('\n');
+        setManualTranscript(text);
+      } catch (err) {
+        console.error('Transcription failed:', err);
+        alert('Failed to transcribe audio file. Please try again.');
+      } finally {
+        setTranscribing(false);
+      }
+    }
+  };
+
+  const handleDeleteMeeting = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this meeting?')) return;
+    try {
+      await meetingService.deleteMeeting(id);
+      setMeetings((prev) => prev.filter((m) => m._id !== id));
+    } catch (err) {
+      console.error('Failed to delete meeting:', err);
     }
   };
 
@@ -340,11 +363,23 @@ export default function MeetingsPage() {
     setTranscribing(true);
     try {
       // Parse transcript into lines
-      const lines = manualTranscript.trim().split('\n').filter(Boolean).map((line, i) => ({
-        time: `${Math.floor(i * 5 / 60)}:${String(i * 5 % 60).padStart(2, '0')}`,
-        speaker: user?.name || 'Speaker',
-        text: line.trim(),
-      }));
+      const lines = manualTranscript.trim().split('\n').filter(Boolean).map((line, i) => {
+        // Try to parse "Speaker: Text" if present
+        const match = line.match(/^(.*?):\s*(.*)$/);
+        const time = `${Math.floor(i * 5 / 60)}:${String(i * 5 % 60).padStart(2, '0')}`;
+        if (match) {
+          return {
+            time,
+            speaker: match[1].trim(),
+            text: match[2].trim(),
+          };
+        }
+        return {
+          time,
+          speaker: user?.name || 'Speaker',
+          text: line.trim(),
+        };
+      });
 
       const { meeting } = await meetingService.updateTranscript(transcriptMeetingId, lines);
       setMeetings((prev) => prev.map((m) => (m._id === transcriptMeetingId ? meeting : m)));
@@ -483,6 +518,7 @@ export default function MeetingsPage() {
                   console.error('Failed to summarize:', err);
                 }
               }}
+              onDelete={handleDeleteMeeting}
             />
           ))}
         </div>
@@ -723,7 +759,7 @@ function CopyLinkButton({ roomId }) {
 }
 
 /* -------- Meeting Card Sub-component -------- */
-function MeetingCard({ meeting, expanded, onToggleExpand, onToggleInsight, canMarkInsight, onAddTranscript, onSummarize }) {
+function MeetingCard({ meeting, expanded, onToggleExpand, onToggleInsight, canMarkInsight, onAddTranscript, onSummarize, onDelete }) {
   const [showInsightsOnly, setShowInsightsOnly] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
 
@@ -794,7 +830,7 @@ function MeetingCard({ meeting, expanded, onToggleExpand, onToggleInsight, canMa
           )}
         </div>
 
-        {/* Participants */}
+        {/* Participants & Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <div className={styles.participants}>
             {participantsArr.slice(0, 3).map((p, i) => (
@@ -817,6 +853,15 @@ function MeetingCard({ meeting, expanded, onToggleExpand, onToggleInsight, canMa
               </span>
             )}
           </div>
+
+          <button
+            className={styles['delete-btn']}
+            onClick={(e) => { e.stopPropagation(); onDelete(meeting._id); }}
+            title="Delete Meeting"
+          >
+            <Trash2 size={16} />
+          </button>
+
           <ChevronDown
             size={16}
             className={`${styles['expand-icon']} ${expanded ? styles['expand-icon--open'] : ''}`}
