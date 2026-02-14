@@ -101,11 +101,17 @@ module.exports = {
                         // For speed, let's just return the struct with sender details we know.
                         const msgObj = savedMessage.toObject();
                         msgObj.senderId = { _id: socket.user.id, username: socket.user.username };
-                        io.to(channelId || receiverId).emit('receive_message', msgObj);
+                        io.to(channelId || receiverId).emit('receive_message', {
+                            conversationId: channelId,
+                            message: msgObj
+                        });
                     } else {
                         // Anonymous
                         const msgObj = savedMessage.toJSON(); // Uses the masking logic
-                        io.to(channelId || receiverId).emit('receive_message', msgObj);
+                        io.to(channelId || receiverId).emit('receive_message', {
+                            conversationId: channelId,
+                            message: msgObj
+                        });
                     }
 
                 } catch (error) {
