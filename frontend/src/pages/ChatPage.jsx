@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { formatDistanceToNow, format, isValid } from 'date-fns';
 import {
   Hash,
@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chat.service';
 import { aiService } from '../services/ai.service';
+import { socketService } from '../services/socket.service';
 import Avatar from '../components/shared/Avatar';
 import Button from '../components/shared/Button';
 import AnonymousToggle from '../components/shared/AnonymousToggle';
@@ -166,6 +167,47 @@ export default function ChatPage() {
     };
     load();
   }, []);
+
+  // ---- Socket.IO: connect on mount, disconnect on unmount ----
+  useEffect(() => {
+    socketService.connect();
+    return () => {
+      socketService.disconnect();
+    };
+  }, []);
+
+  // ---- Socket.IO: join/leave room & listen for new messages ----
+  useEffect(() => {
+    if (!activeConvId) return;
+
+    // Join the conversation room
+    socketService.joinRoom(activeConvId);
+
+    // Listen for real-time messages from other users
+    const unsubscribe = socketService.onNewMessage((data) => {
+      if (data.conversationId === activeConvId) {
+        setMessages((prev) => {
+          // Deduplicate: if the message already exists (sender added it optimistically), skip
+          if (prev.some((m) => m._id === data.message._id)) return prev;
+          return [...prev, data.message];
+        });
+
+        // Also update the conversation sidebar lastMessage
+        setConversations((prev) =>
+          prev.map((c) =>
+            c._id === activeConvId
+              ? { ...c, lastMessage: { text: data.message.text, createdAt: data.message.createdAt } }
+              : c
+          )
+        );
+      }
+    });
+
+    return () => {
+      socketService.leaveRoom(activeConvId);
+      unsubscribe();
+    };
+  }, [activeConvId]);
 
   // Load messages when activeConvId changes
   useEffect(() => {

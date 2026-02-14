@@ -58,7 +58,11 @@ module.exports = {
             socket.on('join_room', (room) => {
                 socket.join(room);
                 console.log(`User ${socket.user.username} joined room: ${room}`);
-                // Emit system message or history could go here
+            });
+
+            socket.on('leave_room', (room) => {
+                socket.leave(room);
+                console.log(`User ${socket.user.username} left room: ${room}`);
             });
 
             socket.on('send_message', async (data) => {

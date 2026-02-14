@@ -344,6 +344,18 @@ exports.sendMessage = async (req, res) => {
             isInsight: msg.isInsight
         };
 
+        // Emit to all clients in the conversation room via Socket.IO
+        try {
+            const socket = require('../socket');
+            const io = socket.getIO();
+            io.to(id).emit('new_message', {
+                conversationId: id,
+                message: mappedMessage,
+            });
+        } catch (socketErr) {
+            console.error('Socket emit error (non-fatal):', socketErr.message);
+        }
+
         res.status(201).json({ message: mappedMessage });
     } catch (error) {
         console.error("Send message error:", error);
