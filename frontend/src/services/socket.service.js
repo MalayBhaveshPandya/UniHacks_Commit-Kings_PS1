@@ -3,17 +3,22 @@ import { io } from 'socket.io-client';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 let socket = null;
+let connectionCount = 0; // Track how many components want the socket alive
 
 /**
  * Singleton Socket.IO service for real-time chat.
+ * Uses reference counting so React StrictMode double-mounts don't kill the connection.
  */
 export const socketService = {
   /**
    * Connect to the Socket.IO server (if not already connected).
-   * Must be called after the user is authenticated.
+   * Increments reference count so multiple callers can share the connection.
    */
   connect() {
-    if (socket?.connected) return socket;
+    connectionCount++;
+
+    // Already connected or connecting — reuse
+    if (socket) return socket;
 
     const token = localStorage.getItem('ps1_token');
     if (!token) {
@@ -45,10 +50,11 @@ export const socketService = {
   },
 
   /**
-   * Disconnect from the Socket.IO server.
+   * Decrement reference count; only truly disconnect when no one needs it.
    */
   disconnect() {
-    if (socket) {
+    connectionCount = Math.max(0, connectionCount - 1);
+    if (connectionCount === 0 && socket) {
       socket.disconnect();
       socket = null;
     }
@@ -63,10 +69,17 @@ export const socketService = {
 
   /**
    * Join a conversation room.
+   * If the socket isn't connected yet, waits for the 'connect' event first.
    */
   joinRoom(conversationId) {
-    if (socket?.connected && conversationId) {
+    if (!socket || !conversationId) return;
+    if (socket.connected) {
       socket.emit('join_room', conversationId);
+    } else {
+      // Wait for socket to connect, then join
+      socket.once('connect', () => {
+        socket.emit('join_room', conversationId);
+      });
     }
   },
 
@@ -86,8 +99,12 @@ export const socketService = {
    */
   onNewMessage(callback) {
     if (!socket) return () => { };
-    socket.on('new_message', callback);
-    return () => socket.off('new_message', callback);
+    // Capture socket reference in closure so cleanup is safe even after disconnect
+    const s = socket;
+    s.on('new_message', callback);
+    return () => {
+      try { s.off('new_message', callback); } catch (_) { /* already cleaned up */ }
+    };
   },
 
   /**
@@ -97,8 +114,11 @@ export const socketService = {
    */
   onTyping(callback) {
     if (!socket) return () => { };
-    socket.on('display_typing', callback);
-    return () => socket.off('display_typing', callback);
+    const s = socket;
+    s.on('display_typing', callback);
+    return () => {
+      try { s.off('display_typing', callback); } catch (_) { /* already cleaned up */ }
+    };
   },
 
   /**
