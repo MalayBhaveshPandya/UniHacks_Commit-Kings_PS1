@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Send, Sparkles, Tag, Smile, Bold } from 'lucide-react';
+import { Send, Sparkles, Tag, Smile, Bold, Image, Film, X, Upload } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import { useAuth } from '../../context/AuthContext';
+import { uploadService } from '../../services/upload.service';
 import Avatar from '../shared/Avatar';
 import Button from '../shared/Button';
 import AnonymousToggle from '../shared/AnonymousToggle';
@@ -19,16 +20,54 @@ export default function PostComposer({ onPost }) {
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // Media state
+  const [mediaFiles, setMediaFiles] = useState([]); // { file, preview, type }
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleSubmit = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() && mediaFiles.length === 0) return;
     setLoading(true);
     try {
-      await onPost({ content: content.trim(), type, anonymous, aiToggle, tags });
+      let uploadedMedia = [];
+
+      // Upload media files if any
+      if (mediaFiles.length > 0) {
+        setUploading(true);
+        setUploadProgress(0);
+        const files = mediaFiles.map((m) => m.file);
+        const results = await uploadService.uploadMultiple(files, setUploadProgress);
+        uploadedMedia = results.map((r) => ({
+          url: r.url,
+          publicId: r.publicId,
+          resourceType: r.resourceType,
+          width: r.width,
+          height: r.height,
+          format: r.format,
+          duration: r.duration,
+        }));
+        setUploading(false);
+      }
+
+      await onPost({
+        content: content.trim(),
+        type,
+        anonymous,
+        aiToggle,
+        tags,
+        media: uploadedMedia,
+      });
       setContent('');
       setTags('');
       setAnonymous(false);
       setAiToggle(false);
+      setMediaFiles([]);
+      setUploadProgress(0);
+    } catch (err) {
+      console.error('Post failed:', err);
+      setUploading(false);
     } finally {
       setLoading(false);
     }
@@ -66,6 +105,43 @@ export default function PostComposer({ onPost }) {
     }, 0);
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Limit to 4 media items
+    const remaining = 4 - mediaFiles.length;
+    const selected = files.slice(0, remaining);
+
+    const newMedia = selected.map((file) => {
+      const isVideo = file.type.startsWith('video/');
+      return {
+        file,
+        preview: URL.createObjectURL(file),
+        type: isVideo ? 'video' : 'image',
+        name: file.name,
+        size: file.size,
+      };
+    });
+
+    setMediaFiles((prev) => [...prev, ...newMedia]);
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
+  const removeMedia = (index) => {
+    setMediaFiles((prev) => {
+      const removed = prev[index];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <div className={styles.composer}>
       <div className={styles['composer-title']}>
@@ -98,6 +174,23 @@ export default function PostComposer({ onPost }) {
             >
               <Bold size={18} />
             </button>
+            <button
+              className={styles['tool-btn']}
+              onClick={() => fileInputRef.current?.click()}
+              title="Add Photo or Video"
+              disabled={mediaFiles.length >= 4}
+            >
+              <Image size={18} />
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
 
             {showPicker && (
               <div className={styles['emoji-picker-popover']}>
@@ -113,6 +206,65 @@ export default function PostComposer({ onPost }) {
           </div>
         </div>
       </div>
+
+      {/* Media Previews */}
+      {mediaFiles.length > 0 && (
+        <div className={styles['media-preview-grid']}>
+          {mediaFiles.map((media, index) => (
+            <div key={index} className={styles['media-preview-item']}>
+              {media.type === 'video' ? (
+                <div className={styles['media-preview-video']}>
+                  <video src={media.preview} className={styles['media-preview-content']} />
+                  <div className={styles['media-video-badge']}>
+                    <Film size={12} />
+                    Video
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={media.preview}
+                  alt={`Preview ${index}`}
+                  className={styles['media-preview-content']}
+                />
+              )}
+              <button
+                className={styles['media-remove-btn']}
+                onClick={() => removeMedia(index)}
+                title="Remove"
+              >
+                <X size={14} />
+              </button>
+              <div className={styles['media-info']}>
+                <span>{formatFileSize(media.size)}</span>
+              </div>
+            </div>
+          ))}
+          {mediaFiles.length < 4 && (
+            <button
+              className={styles['media-add-more']}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={20} />
+              <span>Add more</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Upload Progress */}
+      {uploading && (
+        <div className={styles['upload-progress']}>
+          <div className={styles['upload-progress-bar']}>
+            <div
+              className={styles['upload-progress-fill']}
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <span className={styles['upload-progress-text']}>
+            Uploading... {uploadProgress}%
+          </span>
+        </div>
+      )}
 
       <div className={styles.toolbar}>
         <div className={styles['toolbar-left']}>
@@ -157,8 +309,8 @@ export default function PostComposer({ onPost }) {
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            loading={loading}
-            disabled={!content.trim()}
+            loading={loading || uploading}
+            disabled={!content.trim() && mediaFiles.length === 0}
             icon={Send}
             size="sm"
           >

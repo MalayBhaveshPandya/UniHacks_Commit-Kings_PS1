@@ -48,9 +48,18 @@ const postSchema = new mongoose.Schema(
         },
         content: {
             type: String,
-            required: [true, "Post content is required"],
             trim: true,
+            default: '',
         },
+        media: [{
+            url: { type: String, required: true },
+            publicId: { type: String },
+            resourceType: { type: String, enum: ['image', 'video'], default: 'image' },
+            width: Number,
+            height: Number,
+            format: String,
+            duration: Number, // video duration in seconds
+        }],
         type: {
             type: String,
             enum: ["reflection", "update", "decision", "meeting", "Reflection", "Update", "Decision", "Meeting"],

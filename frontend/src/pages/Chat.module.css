@@ -6,6 +6,241 @@
   overflow: hidden;
 }
 
+/* Message Input Area */
+.msg-input-area {
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.msg-input-row {
+  display: flex;
+  align-items: flex-end;
+  /* Align bottom */
+  gap: var(--space-2);
+  position: relative;
+}
+
+.auth-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-surface-secondary);
+  border-top: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+}
+
+.auth-notice-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: var(--fw-medium);
+}
+
+.auth-notice-link:hover {
+  text-decoration: underline;
+}
+
+.msg-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+  resize: none;
+  min-height: 48px;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: var(--lh-normal);
+  transition: all var(--duration-fast);
+}
+
+.msg-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 2px var(--shadow-focus);
+}
+
+.attach-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.attach-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+.attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Media Previews in Input */
+.msg-media-preview {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  overflow-x: auto;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.preview-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+}
+
+.preview-item img,
+.preview-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-badge {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 1px;
+}
+
+.preview-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.preview-remove:hover {
+  background: var(--accent-danger);
+}
+
+.preview-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.preview-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.msg-progress {
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+}
+
+.msg-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* Message Media Grid */
+.msg-media-grid {
+  display: grid;
+  gap: 2px;
+  padding-bottom: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.msg-media-grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.msg-media-grid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.msg-media-grid--3 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.msg-media-grid--4 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.msg-media-item {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-media-grid--1 .msg-media-item {
+  max-width: 100%;
+  max-height: 400px;
+}
+
+.msg-media-content {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.msg-media-grid--1 .msg-media-content {
+  object-fit: contain;
+  max-height: 400px;
+}
+
 /* ---- Conversation List (Left Panel) ---- */
 .conv-panel {
   background: var(--bg-surface);

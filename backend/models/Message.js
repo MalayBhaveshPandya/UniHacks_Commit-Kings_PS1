@@ -25,8 +25,17 @@ const messageSchema = new mongoose.Schema({
     },
     content: {
         type: String,
-        required: true
+        default: ''
     },
+    media: [{
+        url: { type: String, required: true },
+        publicId: { type: String },
+        resourceType: { type: String, enum: ['image', 'video'], default: 'image' },
+        width: Number,
+        height: Number,
+        format: String,
+        duration: Number,
+    }],
     isAnonymous: {
         type: Boolean,
         default: false

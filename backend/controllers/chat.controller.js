@@ -67,6 +67,7 @@ exports.getMessages = async (req, res) => {
         const mappedMessages = messages.map(msg => ({
             _id: msg._id,
             text: msg.content,
+            media: msg.media || [],
             createdAt: msg.timestamp,
             author: msg.senderId, // Populated user object
             anonymous: msg.isAnonymous,
@@ -305,8 +306,12 @@ exports.getOrgUsers = async (req, res) => {
 exports.sendMessage = async (req, res) => {
     try {
         const { id } = req.params; // Conversation ID
-        const { text, anonymous, isAnonymous: isAnonAlt } = req.body;
+        const { text, anonymous, isAnonymous: isAnonAlt, media } = req.body;
         const isAnonymous = anonymous || isAnonAlt || false; // Frontend sends 'anonymous', accept both
+
+        if (!text?.trim() && (!media || media.length === 0)) {
+            return res.status(400).json({ message: "Message text or media is required." });
+        }
 
         let senderId = req.user.id;
         let encryptedSenderId = null;
@@ -320,14 +325,15 @@ exports.sendMessage = async (req, res) => {
             conversationId: id,
             senderId,
             encryptedSenderId,
-            content: text, // Model uses content, frontend sends text
+            content: text || '', // Model uses content, frontend sends text
+            media: media || [],
             isAnonymous,
             timestamp: new Date()
         });
 
         // Update conversation lastMessage
         await Conversation.findByIdAndUpdate(id, {
-            lastMessage: { text, createdAt: msg.timestamp }
+            lastMessage: { text: text || (media?.length ? '📎 Media' : ''), createdAt: msg.timestamp }
         });
 
         if (msg.senderId) {
@@ -338,6 +344,7 @@ exports.sendMessage = async (req, res) => {
         const mappedMessage = {
             _id: msg._id,
             text: msg.content,
+            media: msg.media || [],
             createdAt: msg.timestamp,
             author: msg.senderId ? { _id: msg.senderId._id, name: msg.senderId.name } : null,
             anonymous: msg.isAnonymous,

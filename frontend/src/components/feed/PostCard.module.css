@@ -251,6 +251,59 @@
   color: var(--accent-danger);
 }
 
-.dropdown-item--danger:hover {
-  background: var(--accent-danger-muted);
+.media-grid {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  width: 100%;
+}
+
+.media-grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.media-grid--2 {
+  grid-template-columns: 1fr 1fr;
+  aspect-ratio: 2/1;
+}
+
+.media-grid--3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  aspect-ratio: 1/1;
+}
+
+.media-grid--3 .media-item:first-child {
+  grid-row: span 2;
+}
+
+.media-grid--4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  aspect-ratio: 1/1;
+}
+
+.media-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.media-content {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Ensure single items respect aspect ratio naturally or set a max height */
+.media-grid--1 .media-item {
+  max-height: 500px;
 }

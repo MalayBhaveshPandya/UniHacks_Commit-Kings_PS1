@@ -117,8 +117,33 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
 
       {/* Content */}
       <div className={styles.content}>
-        <FormattedText text={post.content} />
+        {post.content && <FormattedText text={post.content} />}
       </div>
+
+      {/* Media */}
+      {post.media?.length > 0 && (
+        <div className={`${styles['media-grid']} ${styles[`media-grid--${Math.min(post.media.length, 4)}`]}`}>
+          {post.media.map((media, idx) => (
+            <div key={idx} className={styles['media-item']}>
+              {media.resourceType === 'video' ? (
+                <video
+                  src={media.url}
+                  controls
+                  className={styles['media-content']}
+                  preload="metadata"
+                />
+              ) : (
+                <img
+                  src={media.url}
+                  alt={`Post media ${idx + 1}`}
+                  className={styles['media-content']}
+                  loading="lazy"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Tags */}
       {post.tags?.length > 0 && (

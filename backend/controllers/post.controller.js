@@ -88,19 +88,20 @@ exports.getPosts = async (req, res) => {
  */
 exports.createPost = async (req, res) => {
     try {
-        const { content, type, anonymous, aiToggle, tags } = req.body;
+        const { content, type, anonymous, aiToggle, tags, media } = req.body;
 
-        if (!content) {
-            return res.status(400).json({ error: "Post content is required." });
+        if (!content && (!media || media.length === 0)) {
+            return res.status(400).json({ error: "Post content or media is required." });
         }
 
         const post = await Post.create({
             user: req.user._id,
-            content,
+            content: content || '',
             type: type || "update",
             anonymous: anonymous || false,
             aiToggle: aiToggle || false,
             tags: tags || [],
+            media: media || [],
         });
 
         const populated = await post.populate("user", "name email role jobTitle");

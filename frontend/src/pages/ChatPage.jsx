@@ -30,11 +30,15 @@ import {
   Zap,
   Sun,
   Briefcase,
+  Image,
+  Film,
+  Paperclip,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chat.service';
 import { aiService } from '../services/ai.service';
 import { socketService } from '../services/socket.service';
+import { uploadService } from '../services/upload.service'; // Import upload service
 import Avatar, { getColor } from '../components/shared/Avatar';
 import Button from '../components/shared/Button';
 import AnonymousToggle from '../components/shared/AnonymousToggle';
@@ -127,9 +131,45 @@ export default function ChatPage() {
   const [showReviewerModal, setShowReviewerModal] = useState(false);
   const [selectedReviewers, setSelectedReviewers] = useState([]);
 
+  // Media Upload State
+  const [mediaFiles, setMediaFiles] = useState([]); // { file, preview, type }
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const msgEndRef = useRef(null);
   const inputRef = useRef(null);
   const aiDropdownRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Limit to 4 media items
+    const remaining = 4 - mediaFiles.length;
+    const selected = files.slice(0, remaining);
+
+    const newMedia = selected.map((file) => {
+      const isVideo = file.type.startsWith('video/');
+      return {
+        file,
+        preview: URL.createObjectURL(file),
+        type: isVideo ? 'video' : 'image',
+        name: file.name,
+        size: file.size,
+      };
+    });
+
+    setMediaFiles((prev) => [...prev, ...newMedia]);
+    e.target.value = ''; // Reset input
+  };
+
+  const removeMedia = (index) => {
+    setMediaFiles((prev) => {
+      const removed = prev[index];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   const activeConv = conversations.find((c) => c._id === activeConvId);
   const isTeamChannel = activeConv?.type === 'team';
@@ -435,29 +475,73 @@ export default function ChatPage() {
     }
   };
 
-  // ---- Send Message (with AI) ----
+  // ---- Send Message (with AI & Media) ----
   const handleSend = async () => {
-    if (!text.trim() || !activeConvId) return;
+    if ((!text.trim() && mediaFiles.length === 0) || !activeConvId) return;
+
     const messageText = text.trim();
     const personasToUse = isTeamChannel ? [...selectedPersonas] : [];
+
+    // Optimistic UI update ID
+    const optimId = `temp-${Date.now()}`;
+    const optimMedia = mediaFiles.map(m => ({
+      url: m.preview,
+      resourceType: m.type,
+      width: 0, height: 0 // placeholders
+    }));
+
+    // Add optimistic message
+    const optimMsg = {
+      _id: optimId,
+      text: messageText,
+      media: optimMedia,
+      createdAt: new Date().toISOString(),
+      author: { _id: user._id, name: user.name },
+      anonymous: isTeamChannel ? anonymous : false,
+      isOptimistic: true, // Flag for styling if needed
+    };
+
+    setMessages(prev => [...prev, optimMsg]);
+    setText('');
+    setMediaFiles([]);
     setSending(true);
+    setUploadProgress(0);
+
     try {
+      let uploadedMedia = [];
+
+      // Upload media if present
+      if (mediaFiles.length > 0) {
+        const files = mediaFiles.map(m => m.file);
+        const results = await uploadService.uploadMultiple(files, setUploadProgress);
+        uploadedMedia = results.map(r => ({
+          url: r.url,
+          publicId: r.publicId,
+          resourceType: r.resourceType,
+          width: r.width,
+          height: r.height,
+          format: r.format,
+          duration: r.duration,
+        }));
+      }
+
       const { message } = await chatService.sendMessage(activeConvId, {
         text: messageText,
         anonymous: isTeamChannel ? anonymous : false,
+        media: uploadedMedia,
       });
-      setMessages((prev) => {
-        // Deduplicate: socket event may have already added this message
-        if (prev.some((m) => m._id === message._id)) return prev;
-        return [...prev, message];
-      });
-      setText('');
+
+      // Replace optimistic message with real one
+      setMessages((prev) =>
+        prev.map(m => m._id === optimId ? message : m)
+      );
+
       setAnonymous(false);
 
       setConversations((prev) =>
         prev.map((c) =>
           c._id === activeConvId
-            ? { ...c, lastMessage: { text: message.text, createdAt: message.createdAt } }
+            ? { ...c, lastMessage: { text: message.text || (message.media?.length ? '📎 Media' : ''), createdAt: message.createdAt } }
             : c
         )
       );
@@ -477,7 +561,7 @@ export default function ChatPage() {
         ]);
 
         try {
-          const data = await aiService.getFeedback({ text: messageText, personas: personasToUse });
+          const data = await aiService.getFeedback({ text: messageText || "Check out this media attachment.", personas: personasToUse });
           if (data.feedbacks && data.feedbacks.length > 0) {
             const aiMessages = data.feedbacks.map((fb, idx) => {
               const persona = AI_PERSONAS.find((p) => p.key === fb.persona);
@@ -508,8 +592,12 @@ export default function ChatPage() {
       }
     } catch (err) {
       console.error('Failed to send:', err);
+      // Remove optimistic message on failure
+      setMessages(prev => prev.filter(m => m._id !== optimId));
+      alert("Failed to send message. Please try again.");
     } finally {
       setSending(false);
+      setUploadProgress(0);
     }
   };
 
@@ -946,6 +1034,31 @@ export default function ChatPage() {
                             </div>
                           )}
                           <div className={`${styles['message-bubble']} ${isAI ? styles['message-bubble--ai'] : ''}`}>
+                            {/* Media Display */}
+                            {msg.media?.length > 0 && (
+                              <div className={`${styles['msg-media-grid']} ${styles[`msg-media-grid--${Math.min(msg.media.length, 4)}`]}`}>
+                                {msg.media.map((media, idx) => (
+                                  <div key={idx} className={styles['msg-media-item']}>
+                                    {media.resourceType === 'video' ? (
+                                      <video
+                                        src={media.url}
+                                        controls
+                                        className={styles['msg-media-content']}
+                                        preload="metadata"
+                                      />
+                                    ) : (
+                                      <img
+                                        src={media.url}
+                                        alt="Message Attachment"
+                                        className={styles['msg-media-content']}
+                                        loading="lazy"
+                                      />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
                             {isAI ? (
                               msg.isAILoading ? (
                                 <div className={styles['ai-thinking']}>
@@ -958,7 +1071,7 @@ export default function ChatPage() {
                                 <div dangerouslySetInnerHTML={{ __html: renderFeedbackText(msg.text) }} />
                               )
                             ) : (
-                              msg.text
+                              msg.text && <div className={styles['message-text']}>{msg.text}</div>
                             )}
                             {msg.isInsight && (
                               <div className={styles['insight-indicator']} title="Marked as Insight">
@@ -996,7 +1109,56 @@ export default function ChatPage() {
 
             {/* Input */}
             <div className={styles['msg-input-area']}>
+              {/* Media Preview & Progress */}
+              {mediaFiles.length > 0 && (
+                <div className={styles['msg-media-preview']}>
+                  {mediaFiles.map((media, index) => (
+                    <div key={index} className={styles['preview-item']}>
+                      {media.type === 'video' ? (
+                        <div className={styles['preview-video']}>
+                          <video src={media.preview} />
+                          <Film size={12} className={styles['preview-badge']} />
+                        </div>
+                      ) : (
+                        <img src={media.preview} alt="preview" />
+                      )}
+                      <button className={styles['preview-remove']} onClick={() => removeMedia(index)}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {mediaFiles.length < 4 && (
+                    <button className={styles['preview-add']} onClick={() => fileInputRef.current?.click()}>
+                      <Plus size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className={styles['msg-progress']}>
+                  <div className={styles['msg-progress-bar']} style={{ width: `${uploadProgress}%` }} />
+                </div>
+              )}
+
               <div className={styles['msg-input-row']}>
+                <button
+                  className={styles['attach-btn']}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach images or video"
+                  disabled={mediaFiles.length >= 4}
+                >
+                  <Paperclip size={20} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={handleFileSelect}
+                />
+
                 <textarea
                   ref={inputRef}
                   className={styles['msg-input']}
@@ -1006,7 +1168,7 @@ export default function ChatPage() {
                   onKeyDown={handleKeyDown}
                   rows={1}
                 />
-                <Button onClick={handleSend} loading={sending} disabled={!text.trim()} icon={Send} size="sm">
+                <Button onClick={handleSend} loading={sending} disabled={(!text.trim() && mediaFiles.length === 0)} icon={Send} size="sm">
                   Send
                 </Button>
               </div>
