@@ -44,7 +44,7 @@ export default function Avatar({
   if (anonymous) {
     return (
       <div className={classes}>
-        <User size={size === 'sm' ? 14 : size === 'lg' ? 24 : size === 'xl' ? 36 : 18} />
+        <User size={size === 'xs' ? 10 : size === 'sm' ? 14 : size === 'lg' ? 24 : size === 'xl' ? 36 : 18} />
       </div>
     );
   }

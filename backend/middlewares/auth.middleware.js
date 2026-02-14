@@ -1,38 +1,30 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Mock Auth Middleware
-// This expects a standard Bearer token. 
-// In a real scenario, this would verify the token against Dev 1's secret.
-module.exports = (req, res, next) => {
-    // For development ease, if no token is present, we can inject a mock user
-    // OR enforce strict auth. For now, let's try to decode if present, else mock.
+/**
+ * Auth Middleware - Verifies Bearer token and attaches req.user
+ * Used by chat and vault routes (applied in server.js)
+ */
+module.exports = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
 
-    const authHeader = req.headers.authorization;
-
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        try {
-            // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            // req.user = decoded;
-
-            // MOCK DECODING for now since we don't have Dev 1's secret or token generation
-            req.user = {
-                id: "65d4f23e9a1b2c3d4e5f6789", // Random Mock ID
-                username: "MockUser",
-                role: "Reviewer" // Set to Reviewer to test vault permissions
-            };
-            next();
-        } catch (error) {
-            return res.status(401).json({ message: "Invalid Token" });
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Access denied. No token provided.' });
         }
-    } else {
-        // Fallback for testing without frontend
-        req.user = {
-            id: "65d4f23e9a1b2c3d4e5f6789",
-            username: "MockUser",
-            role: "Reviewer"
-        };
-        console.log("Auth Middleware: No token provided, using Mock User.");
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            return res.status(401).json({ error: 'User not found.' });
+        }
+
+        req.user = user;
+        req.token = token;
         next();
+    } catch (error) {
+        return res.status(401).json({ error: 'Invalid or expired token.' });
     }
 };

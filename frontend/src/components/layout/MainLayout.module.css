@@ -9,6 +9,8 @@
   padding: var(--space-6);
   transition: margin-left var(--duration-slow) var(--ease-out);
   min-height: calc(100vh - var(--topbar-height));
+  /* Desktop default */
+  margin-left: var(--sidebar-width);
 }
 
 .main--expanded {
@@ -24,18 +26,17 @@
 }
 
 @media (max-width: 768px) {
-
-  .main--expanded,
-  .main--collapsed {
-    margin-left: 0;
+  .main {
+    margin-left: 0 !important;
+    margin-top: var(--topbar-height);
+    margin-bottom: 70px;
+    /* Space for bottom nav */
+    padding: var(--space-4);
+    /* Reduce padding */
   }
 
-  .overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: calc(var(--z-sticky) - 1);
-    animation: fadeIn var(--duration-fast) var(--ease-out) both;
+  .content-container {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }

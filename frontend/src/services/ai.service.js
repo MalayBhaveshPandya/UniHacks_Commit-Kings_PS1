@@ -9,7 +9,7 @@ export const aiService = {
       await new Promise((r) => setTimeout(r, 800)); // Simulate AI thinking time
       return mockAI.getFeedback({ text, personas });
     }
-    const { data } = await api.post('/ai/feedback', { text, personas });
+    const { data } = await api.post('/chat/ai-feedback', { text, personas });
     return data;
   },
 };

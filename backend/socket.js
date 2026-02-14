@@ -1,5 +1,6 @@
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 const Message = require('./models/Message');
 const aiService = require('./services/ai.service');
 const crypto = require('crypto');
@@ -28,30 +29,27 @@ module.exports = {
             }
         });
 
-        // Middleware for Auth (Mocking for now based on auth.middleware.js)
-        io.use((socket, next) => {
+        // Middleware for Auth — verify JWT token
+        io.use(async (socket, next) => {
             const token = socket.handshake.auth.token;
             if (token) {
-                // In real app: verify token
-                // socket.user = jwt.verify(token, process.env.JWT_SECRET);
-
-                // MOCK
-                socket.user = {
-                    id: "65d4f23e9a1b2c3d4e5f6789", // Mock ID
-                    username: "MockSocketUser",
-                    role: "Reviewer"
-                };
-                next();
-            } else {
-                // Allow connection even without token for testing, or reject
-                // For now, let's assign a guest user
-                socket.user = {
-                    id: "guest_" + Math.random().toString(36).substr(2, 9),
-                    username: "Guest",
-                    role: "User"
-                };
-                next();
+                try {
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                    const user = await User.findById(decoded.id);
+                    if (user) {
+                        socket.user = {
+                            id: user._id.toString(),
+                            username: user.name,
+                            role: user.role
+                        };
+                        return next();
+                    }
+                } catch (err) {
+                    console.error('Socket auth error:', err.message);
+                }
             }
+            // Reject unauthenticated connections
+            next(new Error('Authentication required'));
         });
 
         io.on('connection', (socket) => {

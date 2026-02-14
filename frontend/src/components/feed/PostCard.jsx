@@ -23,7 +23,7 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
   const menuRef = useRef(null);
 
   const isAuthor = !post.anonymous && user?._id === post.author?._id;
-  const canMarkInsight = ['ceo', 'reviewer', 'team_lead'].includes(user?.role);
+  const canMarkInsight = ['Admin', 'Reviewer'].includes(user?.role);
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
 
   useEffect(() => {
@@ -162,7 +162,13 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
       )}
 
       {/* AI Feedback */}
-      {showAI && <AIFeedbackPanel text={post.content} />}
+      {showAI && (
+        <AIFeedbackPanel
+          text={post.content}
+          postId={post._id}
+          initialFeedbacks={post.aiFeedbacks}
+        />
+      )}
     </article>
   );
 }

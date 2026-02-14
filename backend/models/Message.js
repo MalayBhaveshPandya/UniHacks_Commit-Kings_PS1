@@ -10,12 +10,16 @@ const messageSchema = new mongoose.Schema({
         type: String, // Stores encrypted ID for anonymous messages
         default: null
     },
+    conversationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Conversation'
+    },
     receiverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         default: null
     },
-    channelId: {
+    channelId: {  // Keeping for backward compatibility or direct channel string refs
         type: String,
         default: null
     },

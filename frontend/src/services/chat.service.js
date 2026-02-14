@@ -50,4 +50,63 @@ export const chatService = {
     const { data } = await api.post('/chat/conversations', convData);
     return data;
   },
+
+  // ---- Group Management ----
+
+  async getConversationDetails(conversationId) {
+    const { data } = await api.get(`/chat/conversations/${conversationId}`);
+    return data;
+  },
+
+  async updateConversation(conversationId, updates) {
+    const { data } = await api.put(`/chat/conversations/${conversationId}`, updates);
+    return data;
+  },
+
+  async leaveConversation(conversationId) {
+    const { data } = await api.post(`/chat/conversations/${conversationId}/leave`);
+    return data;
+  },
+
+  async addParticipants(conversationId, userIds) {
+    const { data } = await api.post(`/chat/conversations/${conversationId}/participants`, { userIds });
+    return data;
+  },
+
+  async removeParticipant(conversationId, userId) {
+    const { data } = await api.delete(`/chat/conversations/${conversationId}/participants/${userId}`);
+    return data;
+  },
+
+  async deleteConversation(conversationId) {
+    const { data } = await api.delete(`/chat/conversations/${conversationId}`);
+    return data;
+  },
+
+  async getOrgUsers() {
+    const { data } = await api.get('/chat/users');
+    return data;
+  },
+
+  // ---- Reviewers Management ----
+
+  async manageReviewers(conversationId, reviewerIds) {
+    const { data } = await api.put(`/chat/conversations/${conversationId}/reviewers`, { reviewerIds });
+    return data;
+  },
+
+  // ---- Insights ----
+
+  async getInsights(conversationId) {
+    const { data } = await api.get(`/chat/conversations/${conversationId}/insights`);
+    return data;
+  },
+
+  // ---- AI Summarize ----
+
+  async summarizeChat(conversationId, question = null) {
+    const { data } = await api.post(`/chat/conversations/${conversationId}/summarize`, { question });
+    return data;
+  },
 };
+

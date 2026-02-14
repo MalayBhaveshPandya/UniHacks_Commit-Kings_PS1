@@ -69,6 +69,7 @@
   justify-content: center;
   z-index: var(--z-modal);
   animation: fadeIn var(--duration-fast) var(--ease-out) both;
+  padding: var(--space-4);
 }
 
 .modal {
@@ -228,6 +229,8 @@
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
   margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .transcript-title {
@@ -245,6 +248,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .transcript-filter-btn {
@@ -405,4 +409,60 @@
   font-size: var(--fs-xs);
   color: var(--text-tertiary);
   margin-left: var(--space-1);
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .card-info {
+    width: 100%;
+  }
+
+  /* Position toggle relative to header box */
+  .expand-icon {
+    position: absolute;
+    top: var(--space-5);
+    right: var(--space-5);
+    margin-top: 0;
+  }
+
+  /* Move participants below */
+  .participants {
+    margin-top: var(--space-2);
+  }
+
+  .transcript {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .transcript-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Make actions always visible on mobile if insight */
+  .t-actions {
+    opacity: 1;
+    /* Always show actions on touch devices */
+  }
+
+  .t-line {
+    flex-wrap: wrap;
+    /* Allow time to wrap if too narrow? Or keep fixed */
+  }
 }

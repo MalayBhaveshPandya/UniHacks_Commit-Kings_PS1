@@ -53,8 +53,9 @@ const postSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ["Reflection", "Update", "Decision", "Meeting"],
-            default: "Update",
+            enum: ["reflection", "update", "decision", "meeting", "Reflection", "Update", "Decision", "Meeting"],
+            default: "update",
+            set: v => v ? v.toLowerCase() : 'update',
         },
         anonymous: {
             type: Boolean,
@@ -95,6 +96,12 @@ const postSchema = new mongoose.Schema(
             default: null,
         },
         tags: [{ type: String, trim: true }],
+        // AI Feedbacks Persistence
+        aiFeedbacks: [{
+            persona: String,
+            feedback: String,
+            createdAt: { type: Date, default: Date.now }
+        }]
     },
     { timestamps: true }
 );

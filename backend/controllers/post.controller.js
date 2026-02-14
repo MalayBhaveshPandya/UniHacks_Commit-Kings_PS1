@@ -97,7 +97,7 @@ exports.createPost = async (req, res) => {
         const post = await Post.create({
             user: req.user._id,
             content,
-            type: type || "Update",
+            type: type || "update",
             anonymous: anonymous || false,
             aiToggle: aiToggle || false,
             tags: tags || [],
@@ -350,5 +350,45 @@ exports.markInsight = async (req, res) => {
     } catch (err) {
         console.error("Mark insight error:", err);
         res.status(500).json({ error: "Server error." });
+    }
+};
+/**
+ * POST /api/posts/:id/ai-feedback
+ * Body: { feedbacks: [{ persona, feedback }] }
+ * Returns: { post }
+ */
+exports.saveAIFeedback = async (req, res) => {
+    try {
+        const { feedbacks } = req.body;
+        if (!feedbacks || !Array.isArray(feedbacks)) {
+            return res.status(400).json({ error: "Feedbacks array is required." });
+        }
+
+        const post = await Post.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ error: "Post not found." });
+        }
+
+        // Only the author can save feedback to their post
+        if (post.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Not authorized." });
+        }
+
+        // Append new feedbacks
+        post.aiFeedbacks.push(...feedbacks);
+
+        await post.save();
+        await post.populate("user", "name email role jobTitle");
+
+        // Strip info if anonymous
+        const result = post.toObject();
+        if (result.anonymous) {
+            result.user = { _id: null, name: "Anonymous" };
+        }
+
+        res.json({ post: result });
+    } catch (err) {
+        console.error("Save AI feedback error:", err);
+        res.status(500).json({ error: "Server error" });
     }
 };

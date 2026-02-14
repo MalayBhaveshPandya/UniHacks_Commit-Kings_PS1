@@ -278,6 +278,7 @@
   color: var(--text-tertiary);
   transition: all var(--duration-fast) var(--ease-out);
   z-index: 10;
+  cursor: pointer;
 }
 
 .theme-toggle-auth:hover {
@@ -293,5 +294,11 @@
 
   .form-side {
     padding: var(--space-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
   }
 }

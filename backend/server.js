@@ -8,6 +8,8 @@ const socket = require('./socket');
 const authMiddleware = require('./middlewares/auth.middleware');
 
 // Routes
+const authRoutes = require('./routes/auth.routes');
+const postRoutes = require('./routes/post.routes');
 const chatRoutes = require('./routes/chat.routes');
 const vaultRoutes = require('./routes/vault.routes');
 
@@ -29,8 +31,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/commit-ki
 // Initialize Socket.io
 socket.init(server);
 
+const meetingRoutes = require('./routes/meeting.routes');
+
 // API Routes
-app.use('/api/ai', authMiddleware, chatRoutes); // /api/ai prefix for chat/ai related
+app.use('/api/auth', authRoutes);              // signup/login are public; /me & /profile use their own auth
+app.use('/api/posts', postRoutes);             // router-level auth middleware applied inside post.routes.js
+app.use('/api/chat', authMiddleware, chatRoutes);  // chat + AI feedback
+app.use('/api/meetings', authMiddleware, meetingRoutes);
 app.use('/api/vault', authMiddleware, vaultRoutes);
 
 // Base Route

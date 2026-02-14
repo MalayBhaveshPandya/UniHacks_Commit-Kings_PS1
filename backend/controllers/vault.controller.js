@@ -4,22 +4,82 @@ const Message = require('../models/Message');
 const Post = require('../models/Post');
 
 // Create a new meeting (or log one)
+// Create a new meeting (or log one)
 exports.createMeeting = async (req, res) => {
     try {
-        const { recordingLink, transcript, tags, scheduledAt } = req.body;
+        const { title, recordingUrl, transcript, tags, scheduledAt, duration, participants } = req.body;
 
         const newMeeting = new Meeting({
+            title: title || "Untitled Meeting",
             scheduledAt: scheduledAt || new Date(),
-            recordingLink,
-            transcript: transcript || "",
+            recordingUrl: recordingUrl || "",
+            duration: duration || "",
+            transcript: transcript || [],
             tags: tags || [],
-            participants: [] // In a real app, populate from invitees
+            participants: participants || []
         });
 
         const savedMeeting = await newMeeting.save();
-        res.status(201).json(savedMeeting);
+        res.status(201).json({ meeting: savedMeeting });
     } catch (error) {
         console.error("Error creating meeting:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Get all meetings
+exports.getMeetings = async (req, res) => {
+    try {
+        const meetings = await Meeting.find().sort({ scheduledAt: -1 });
+        res.json({ meetings });
+    } catch (error) {
+        console.error("Error fetching meetings:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Get single meeting
+exports.getMeeting = async (req, res) => {
+    try {
+        const meeting = await Meeting.findById(req.params.id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+        res.json({ meeting });
+    } catch (error) {
+        console.error("Error fetching meeting:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Delete meeting
+exports.deleteMeeting = async (req, res) => {
+    try {
+        const meeting = await Meeting.findByIdAndDelete(req.params.id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+        res.json({ message: "Meeting deleted" });
+    } catch (error) {
+        console.error("Error deleting meeting:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Toggle transcript insight
+exports.toggleTranscriptInsight = async (req, res) => {
+    try {
+        const { id, index } = req.params;
+        const meeting = await Meeting.findById(id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+
+        // Assuming insights is an array of indices
+        const idx = meeting.insights.indexOf(parseInt(index));
+        if (idx > -1) {
+            meeting.insights.splice(idx, 1);
+        } else {
+            meeting.insights.push(parseInt(index));
+        }
+        await meeting.save();
+        res.json({ meeting });
+    } catch (error) {
+        console.error("Error toggling insight:", error);
         res.status(500).json({ message: "Server error" });
     }
 };

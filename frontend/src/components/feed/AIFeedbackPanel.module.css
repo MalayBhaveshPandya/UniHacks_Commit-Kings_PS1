@@ -90,8 +90,29 @@
   font-size: var(--fs-sm);
   color: var(--text-secondary);
   line-height: var(--lh-relaxed);
-  font-style: italic;
   font-family: var(--font-display);
+}
+
+.feedback-text p {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.feedback-text p:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-text strong {
+  color: var(--text-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.feedback-text ul {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-5);
+}
+
+.feedback-text li {
+  margin-bottom: var(--space-1);
 }
 
 /* Loading skeleton */

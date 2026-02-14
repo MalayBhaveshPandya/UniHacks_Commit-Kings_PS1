@@ -30,4 +30,7 @@ router.post("/:id/repost", postController.repost);
 // POST   /api/posts/:id/insight  — Mark/unmark as insight
 router.post("/:id/insight", postController.markInsight);
 
+// POST   /api/posts/:id/ai-feedback — Save AI feedback
+router.post("/:id/ai-feedback", postController.saveAIFeedback);
+
 module.exports = router;

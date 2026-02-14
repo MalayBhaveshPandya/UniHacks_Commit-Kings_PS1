@@ -1,3 +1,4 @@
+/* Default Sidebar (Desktop) is unchanged */
 .sidebar {
   position: fixed;
   top: 0;
@@ -9,8 +10,7 @@
   display: flex;
   flex-direction: column;
   z-index: var(--z-sticky);
-  transition: width var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
+  transition: width var(--duration-slow) var(--ease-out);
   overflow: hidden;
 }
 
@@ -18,12 +18,11 @@
   width: var(--sidebar-width-collapsed);
 }
 
-/* Brand area */
 .brand {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-5);
+  padding: var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
   height: var(--topbar-height);
   flex-shrink: 0;
@@ -38,11 +37,9 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-style: italic;
   font-size: var(--fs-lg);
   color: var(--text-inverse);
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
 }
 
 .brand-text {
@@ -50,14 +47,8 @@
   font-size: var(--fs-lg);
   color: var(--text-primary);
   white-space: nowrap;
-  overflow: hidden;
 }
 
-.brand-text span {
-  color: var(--accent);
-}
-
-/* Navigation */
 .nav {
   flex: 1;
   padding: var(--space-4) var(--space-3);
@@ -82,23 +73,19 @@
   text-transform: uppercase;
   color: var(--text-tertiary);
   padding: var(--space-2) var(--space-3);
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-3);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  white-space: nowrap;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: all var(--duration-fast);
   position: relative;
-  overflow: hidden;
 }
 
 .nav-item:hover {
@@ -111,58 +98,80 @@
   color: var(--accent);
 }
 
-.nav-item--active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 var(--radius-full) var(--radius-full) 0;
-  background: var(--accent);
-}
-
-.nav-item-icon {
-  flex-shrink: 0;
-  display: flex;
-}
-
-.nav-item-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Footer */
 .footer {
   border-top: 1px solid var(--border-subtle);
   padding: var(--space-3);
-  flex-shrink: 0;
 }
 
-.collapse-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  color: var(--text-tertiary);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.collapse-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-/* Mobile */
+/* Mobile Bottom Tab Bar */
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
+
+  .sidebar,
+  .sidebar--collapsed {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100% !important;
+    height: 64px;
+    /* Fixed height tab bar */
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border-default);
+    padding: 0;
+    justify-content: space-around;
+    background: var(--bg-surface);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
   }
 
-  .sidebar--open {
-    transform: translateX(0);
-    box-shadow: var(--shadow-lg);
+  .nav {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .nav-section {
+    margin: 0;
+    display: contents;
+  }
+
+  /* Remove section spacing */
+  .nav-label {
+    display: none;
+  }
+
+  /* Hide labels like "MAIN" */
+  .brand {
+    display: none;
+  }
+
+  /* Hide brand logo */
+  .footer {
+    display: none;
+  }
+
+  /* Hide footer collapse btn */
+
+  .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 10px;
+    width: 100%;
+    border-radius: 0;
+    background: transparent !important;
+    /* No hover bg */
+  }
+
+  .nav-item-icon {
+    font-size: 20px;
+  }
+
+  .nav-item--active {
+    color: var(--accent);
+    background: transparent;
   }
 }

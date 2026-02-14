@@ -104,3 +104,23 @@
   font-size: var(--fs-sm);
   animation: scaleIn var(--duration-fast) var(--ease-out) both;
 }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .profile {
+    padding-bottom: 80px;
+  }
+
+  .card {
+    padding: var(--space-5);
+  }
+
+  .avatar-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

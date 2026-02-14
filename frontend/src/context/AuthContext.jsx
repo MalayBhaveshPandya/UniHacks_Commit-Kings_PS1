@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
       dispatch({ type: 'AUTH_SUCCESS', payload: data });
       return data;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed';
+      const msg = err.response?.data?.error || err.response?.data?.message || 'Login failed';
       dispatch({ type: 'AUTH_ERROR', payload: msg });
       throw new Error(msg);
     }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
       dispatch({ type: 'AUTH_SUCCESS', payload: data });
       return data;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Signup failed';
+      const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
       dispatch({ type: 'AUTH_ERROR', payload: msg });
       throw new Error(msg);
     }
