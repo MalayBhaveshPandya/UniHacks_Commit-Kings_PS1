@@ -465,6 +465,7 @@ exports.manageReviewers = async (req, res) => {
 /**
  * GET /api/chat/conversations/:id/insights
  * Get all insight-marked messages for a conversation
+ * //test commit
  */
 exports.getInsights = async (req, res) => {
     try {
