@@ -400,7 +400,11 @@ export default function ChatPage() {
         text: messageText,
         anonymous: isTeamChannel ? anonymous : false,
       });
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // Deduplicate: socket event may have already added this message
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
       setText('');
       setAnonymous(false);
 
