@@ -238,6 +238,29 @@ export default function ChatPage() {
       }
     };
     load();
+
+    // Polling fallback to ensure updates
+    let isMounted = true;
+    let timeoutId;
+
+    const pollMessages = async () => {
+      try {
+        const data = await chatService.getMessages(activeConvId);
+        if (isMounted) {
+          setMessages(data.messages);
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      } finally {
+        if (isMounted) {
+          timeoutId = setTimeout(pollMessages, 3000); // Poll every 3 seconds
+        }
+      }
+    };
+
+    // Start polling after initial load
+    timeoutId = setTimeout(pollMessages, 3000);
+
     setSelectedPersonas([]);
     setShowGroupInfo(false);
     setShowInsightsPanel(false);
@@ -245,6 +268,11 @@ export default function ChatPage() {
     setChatSummary('');
     setSummaryQA([]);
     setGroupDetails(null);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [activeConvId]);
 
   // Scroll to bottom on new messages
