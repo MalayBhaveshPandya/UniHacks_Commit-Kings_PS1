@@ -2,9 +2,9 @@ const Meeting = require('../models/Meeting');
 const Insight = require('../models/Insight');
 const Message = require('../models/Message');
 const Post = require('../models/Post');
+const crypto = require('crypto');
 
-// Create a new meeting (or log one)
-// Create a new meeting (or log one)
+// Create a new meeting (log one)
 exports.createMeeting = async (req, res) => {
     try {
         const { title, recordingUrl, transcript, tags, scheduledAt, duration, participants } = req.body;
@@ -16,7 +16,8 @@ exports.createMeeting = async (req, res) => {
             duration: duration || "",
             transcript: transcript || [],
             tags: tags || [],
-            participants: participants || []
+            participants: participants || [],
+            createdBy: req.user?._id || req.user?.id,
         });
 
         const savedMeeting = await newMeeting.save();
@@ -24,6 +25,118 @@ exports.createMeeting = async (req, res) => {
     } catch (error) {
         console.error("Error creating meeting:", error);
         res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Start a live meeting (generates Jitsi room)
+exports.startMeeting = async (req, res) => {
+    try {
+        const { title } = req.body;
+        const roomId = 'ck-' + crypto.randomBytes(6).toString('hex');
+
+        const newMeeting = new Meeting({
+            title: title || "Quick Meeting",
+            scheduledAt: new Date(),
+            roomId,
+            isActive: true,
+            createdBy: req.user?._id || req.user?.id,
+            participants: [req.user?.name || 'Host'],
+        });
+
+        const savedMeeting = await newMeeting.save();
+        res.status(201).json({ meeting: savedMeeting });
+    } catch (error) {
+        console.error("Error starting meeting:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// End a live meeting
+exports.endMeeting = async (req, res) => {
+    try {
+        const meeting = await Meeting.findById(req.params.id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+
+        meeting.isActive = false;
+        await meeting.save();
+        res.json({ meeting });
+    } catch (error) {
+        console.error("Error ending meeting:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Update transcript for a meeting
+exports.updateTranscript = async (req, res) => {
+    try {
+        const { transcript } = req.body;
+        const meeting = await Meeting.findById(req.params.id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+
+        meeting.transcript = transcript || [];
+        await meeting.save();
+        res.json({ meeting });
+    } catch (error) {
+        console.error("Error updating transcript:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// AI Summarize a meeting transcript
+exports.summarizeTranscript = async (req, res) => {
+    try {
+        const meeting = await Meeting.findById(req.params.id);
+        if (!meeting) return res.status(404).json({ message: "Meeting not found" });
+
+        const transcript = meeting.transcript;
+        if (!transcript || transcript.length === 0) {
+            return res.json({ summary: "No transcript available to summarize." });
+        }
+
+        // Build transcript text
+        const transcriptText = transcript.map(line => {
+            if (typeof line === 'object') {
+                return `[${line.time || ''}] ${line.speaker || 'Unknown'}: ${line.text || ''}`;
+            }
+            return String(line);
+        }).join('\n');
+
+        const OpenAI = require('openai');
+        const openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPENROUTER_API_KEY,
+        });
+        const MODEL = process.env.AI_MODEL || "google/gemini-2.0-flash-lite-001";
+
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+                {
+                    role: "system",
+                    content: `You are an AI assistant that summarizes meeting transcripts. Provide a well-structured summary covering:
+- **Key Topics Discussed**
+- **Important Decisions Made**
+- **Action Items & Next Steps**
+- **Notable Points**
+Keep it concise (under 300 words). Use bullet points.`
+                },
+                {
+                    role: "user",
+                    content: `Summarize this meeting transcript:\n\n${transcriptText}`
+                }
+            ],
+            max_tokens: 800,
+            temperature: 0.5,
+        });
+
+        const summary = completion.choices?.[0]?.message?.content || 'Could not generate summary.';
+        meeting.aiSummary = summary;
+        await meeting.save();
+
+        res.json({ summary });
+    } catch (error) {
+        console.error("Error summarizing transcript:", error);
+        res.status(500).json({ message: "Failed to generate summary." });
     }
 };
 

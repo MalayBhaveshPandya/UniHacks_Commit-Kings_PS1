@@ -11,7 +11,7 @@ const meetingSchema = new mongoose.Schema({
         required: true,
         default: Date.now
     },
-    recordingUrl: { // Changed from recordingLink to match frontend
+    recordingUrl: {
         type: String,
         default: ""
     },
@@ -20,18 +20,40 @@ const meetingSchema = new mongoose.Schema({
         default: ""
     },
     transcript: {
-        type: mongoose.Schema.Types.Mixed, // Allow array of objects {time, speaker, text}
+        type: mongoose.Schema.Types.Mixed, // Array of {time, speaker, text}
         default: []
     },
     tags: [{
         type: String
     }],
-    participants: [{ // Can be ObjectIds if linked, or strings if just names
-        type: mongoose.Schema.Types.Mixed // Start with Mixed to support both ID and String names
+    participants: [{
+        type: mongoose.Schema.Types.Mixed
     }],
-    insights: [{ // Indices of transcript lines marked as insight
+    insights: [{
         type: Number
-    }]
+    }],
+    // --- New fields for live meetings ---
+    roomId: {
+        type: String,
+        default: ""
+    },
+    isActive: {
+        type: Boolean,
+        default: false
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    // Audio transcription fields
+    audioUrl: {
+        type: String,
+        default: ""
+    },
+    aiSummary: {
+        type: String,
+        default: ""
+    }
 });
 
 module.exports = mongoose.model('Meeting', meetingSchema);

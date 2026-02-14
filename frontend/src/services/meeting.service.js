@@ -33,6 +33,30 @@ export const meetingService = {
     return data;
   },
 
+  // Start a live meeting (generates Jitsi room)
+  async startMeeting(title) {
+    const { data } = await api.post('/meetings/start', { title });
+    return data;
+  },
+
+  // End a live meeting
+  async endMeeting(id) {
+    const { data } = await api.post(`/meetings/${id}/end`);
+    return data;
+  },
+
+  // Update transcript for a meeting
+  async updateTranscript(id, transcript) {
+    const { data } = await api.put(`/meetings/${id}/transcript`, { transcript });
+    return data;
+  },
+
+  // AI Summarize transcript
+  async summarizeTranscript(id) {
+    const { data } = await api.post(`/meetings/${id}/summarize`);
+    return data;
+  },
+
   async toggleTranscriptInsight(meetingId, transcriptIndex) {
     if (USE_MOCK) {
       await delay(100);
