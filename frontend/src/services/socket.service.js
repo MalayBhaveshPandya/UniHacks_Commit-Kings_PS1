@@ -101,9 +101,9 @@ export const socketService = {
     if (!socket) return () => { };
     // Capture socket reference in closure so cleanup is safe even after disconnect
     const s = socket;
-    s.on('new_message', callback);
+    s.on('receive_message', callback);
     return () => {
-      try { s.off('new_message', callback); } catch (_) { /* already cleaned up */ }
+      try { s.off('receive_message', callback); } catch (_) { /* already cleaned up */ }
     };
   },
 
