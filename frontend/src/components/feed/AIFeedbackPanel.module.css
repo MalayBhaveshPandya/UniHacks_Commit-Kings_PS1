@@ -21,9 +21,14 @@
   gap: var(--space-2);
   margin-bottom: var(--space-4);
   overflow-x: auto;
+  padding-bottom: 2px;
+  /* For focus rings */
 }
 
 .tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
   font-size: var(--fs-xs);
@@ -41,12 +46,14 @@
 .tab:hover {
   border-color: var(--text-secondary);
   color: var(--text-secondary);
+  background: var(--bg-hover);
 }
 
 .tab--active {
-  border-color: var(--accent-secondary);
-  background: var(--accent-secondary-muted);
-  color: var(--accent-secondary);
+  border-color: var(--accent);
+  background: var(--accent-muted);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-muted);
 }
 
 /* Feedback card */
@@ -54,9 +61,10 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
+  padding: var(--space-5);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .feedback::before {
@@ -64,37 +72,44 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 3px;
+  width: 4px;
   height: 100%;
-  background: var(--accent-secondary);
-  border-radius: var(--radius-full);
+  background: var(--accent);
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
 }
 
 .feedback-persona {
   font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
-  color: var(--accent-secondary);
-  margin-bottom: var(--space-2);
+  color: var(--accent);
+  margin-bottom: var(--space-3);
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .persona-icon {
-  font-size: var(--fs-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .feedback-text {
   font-size: var(--fs-sm);
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  /* Darker/Better contrast */
   line-height: var(--lh-relaxed);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  /* Switch to clean sans-serif */
 }
 
 .feedback-text p {
-  margin: 0 0 var(--space-2) 0;
+  margin: 0 0 var(--space-3) 0;
 }
 
 .feedback-text p:last-child {
@@ -102,17 +117,21 @@
 }
 
 .feedback-text strong {
-  color: var(--text-primary);
+  color: var(--accent);
+  /* Highlight key terms */
   font-weight: var(--fw-semibold);
 }
 
 .feedback-text ul {
   margin: var(--space-2) 0;
   padding-left: var(--space-5);
+  list-style-type: disc;
+  color: var(--text-secondary);
 }
 
 .feedback-text li {
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-1);
 }
 
 /* Loading skeleton */
@@ -120,13 +139,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-5);
   background: var(--bg-elevated);
   border-radius: var(--radius-md);
 }
 
 .loading-bar {
-  height: 12px;
+  height: 14px;
   border-radius: var(--radius-sm);
   background: linear-gradient(90deg,
       var(--bg-hover) 25%,

@@ -34,7 +34,7 @@
   width: 16px;
   height: 16px;
   border-radius: var(--radius-full);
-  background: var(--text-primary);
+  background: var(--accent);
   transition: transform var(--duration-base) var(--ease-spring);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }

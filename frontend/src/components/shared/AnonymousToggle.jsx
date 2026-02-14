@@ -1,7 +1,7 @@
 import { EyeOff, Eye } from 'lucide-react';
 import styles from './AnonymousToggle.module.css';
 
-export default function AnonymousToggle({ active, onChange, label = 'Post anonymously' }) {
+export default function AnonymousToggle({ active, onChange, label = 'Post Anonymously' }) {
   return (
     <label className={styles.toggle}>
       <div className={`${styles.track} ${active ? styles['track--active'] : ''}`}>

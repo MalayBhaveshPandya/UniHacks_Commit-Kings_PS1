@@ -14,7 +14,6 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [keyword, setKeyword] = useState('');
-  const [insightsOnly, setInsightsOnly] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -22,7 +21,6 @@ export default function FeedPage() {
       const filters = {};
       if (typeFilter !== 'all') filters.type = typeFilter;
       if (keyword.trim()) filters.keyword = keyword.trim();
-      if (insightsOnly) filters.insightsOnly = 'true';
       const data = await postService.getPosts(filters);
       setPosts(data.posts);
     } catch (err) {
@@ -30,7 +28,7 @@ export default function FeedPage() {
     } finally {
       setLoading(false);
     }
-  }, [typeFilter, keyword, insightsOnly]);
+  }, [typeFilter, keyword]);
 
   useEffect(() => {
     fetchPosts();
@@ -98,14 +96,6 @@ export default function FeedPage() {
             </button>
           ))}
         </div>
-
-        <button
-          className={`${styles['insight-pill']} ${insightsOnly ? styles['insight-pill--active'] : ''}`}
-          onClick={() => setInsightsOnly(!insightsOnly)}
-        >
-          <Lightbulb size={12} />
-          Insights
-        </button>
       </div>
 
       {/* Posts */}

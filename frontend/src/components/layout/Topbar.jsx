@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Menu, LogOut, UserCircle, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, UserCircle, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import Avatar from '../shared/Avatar';
 import styles from './Topbar.module.css';
 
 export default function Topbar({ sidebarCollapsed, onMobileMenuToggle, pageTitle }) {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -41,10 +39,7 @@ export default function Topbar({ sidebarCollapsed, onMobileMenuToggle, pageTitle
       </div>
 
       <div className={styles.right}>
-        {/* Theme Toggle */}
-        <button className={styles['theme-toggle']} onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+
 
         {/* User */}
         <div ref={dropdownRef} style={{ position: 'relative' }}>

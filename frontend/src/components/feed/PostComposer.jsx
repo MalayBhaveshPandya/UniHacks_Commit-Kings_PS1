@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Send, Sparkles, Tag } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Send, Sparkles, Tag, Smile, Bold } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../shared/Avatar';
 import Button from '../shared/Button';
@@ -16,6 +17,8 @@ export default function PostComposer({ onPost }) {
   const [aiToggle, setAiToggle] = useState(false);
   const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const textareaRef = useRef(null);
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
@@ -37,12 +40,42 @@ export default function PostComposer({ onPost }) {
     }
   };
 
+  const handleEmojiClick = (emojiData) => {
+    const cursor = textareaRef.current.selectionStart;
+    const newText = content.slice(0, cursor) + emojiData.emoji + content.slice(cursor);
+    setContent(newText);
+    setTimeout(() => {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(cursor + emojiData.emoji.length, cursor + emojiData.emoji.length);
+    }, 0);
+  };
+
+  const handleBoldClick = () => {
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const selection = content.substring(start, end);
+    const newText = content.substring(0, start) + `**${selection || 'bold'}**` + content.substring(end);
+    setContent(newText);
+    setTimeout(() => {
+      textareaRef.current.focus();
+      if (!selection) {
+        textareaRef.current.setSelectionRange(start + 2, start + 6);
+      } else {
+        textareaRef.current.setSelectionRange(end + 4, end + 4);
+      }
+    }, 0);
+  };
+
   return (
     <div className={styles.composer}>
+      <div className={styles['composer-title']}>
+        <h3>Create New Post</h3>
+      </div>
       <div className={styles['composer-header']}>
         <Avatar name={anonymous ? null : user?.name} anonymous={anonymous} size="md" />
         <div className={styles['composer-input']}>
           <textarea
+            ref={textareaRef}
             className={styles.textarea}
             placeholder="What's on your mind? Share a reflection, update, or decision..."
             value={content}
@@ -50,6 +83,34 @@ export default function PostComposer({ onPost }) {
             onKeyDown={handleKeyDown}
             rows={3}
           />
+          <div className={styles['formatting-tools']}>
+            <button
+              className={styles['tool-btn']}
+              onClick={() => setShowPicker(!showPicker)}
+              title="Add Emoji"
+            >
+              <Smile size={18} />
+            </button>
+            <button
+              className={styles['tool-btn']}
+              onClick={handleBoldClick}
+              title="Bold Text"
+            >
+              <Bold size={18} />
+            </button>
+
+            {showPicker && (
+              <div className={styles['emoji-picker-popover']}>
+                <div className={styles['emoji-overlay']} onClick={() => setShowPicker(false)} />
+                <EmojiPicker
+                  onEmojiClick={handleEmojiClick}
+                  width={300}
+                  height={400}
+                  theme="light"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -82,7 +143,7 @@ export default function PostComposer({ onPost }) {
 
         <div className={styles['toolbar-right']}>
           {/* Anonymous Toggle */}
-          <AnonymousToggle active={anonymous} onChange={setAnonymous} label="Anon" />
+          <AnonymousToggle active={anonymous} onChange={setAnonymous} label="Post Anonymously" />
 
           {/* AI Toggle */}
           <button

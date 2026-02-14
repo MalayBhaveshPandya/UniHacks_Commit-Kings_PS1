@@ -62,6 +62,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  position: relative; /* For picker positioning context if needed, though popover might be better absolute relative to button */
 }
 
 .input {
@@ -89,4 +90,51 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.formatting-tools {
+  display: flex;
+  gap: var(--space-2);
+  position: relative;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+.emoji-picker-popover {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-lg);
+}
+
+.emoji-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 49;
+}
+
+.action-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }

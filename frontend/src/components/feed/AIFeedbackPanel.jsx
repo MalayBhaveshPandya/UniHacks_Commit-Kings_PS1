@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, TrendingUp, ShieldAlert, Sun, Users } from 'lucide-react';
 import { aiService } from '../../services/ai.service';
 import { postService } from '../../services/post.service';
 import styles from './AIFeedbackPanel.module.css';
 
 const PERSONAS_CONFIG = [
-  { key: 'investor', label: 'Investor', icon: '💰' },
-  { key: 'critical', label: 'Critical', icon: '🔍' },
-  { key: 'optimist', label: 'Optimist', icon: '🌟' },
-  { key: 'team_lead', label: 'Team Lead', icon: '👥' },
+  { key: 'investor', label: 'Investor', icon: TrendingUp },
+  { key: 'critical', label: 'Critical', icon: ShieldAlert },
+  { key: 'optimist', label: 'Optimist', icon: Sun },
+  { key: 'team_lead', label: 'Team Lead', icon: Users },
 ];
 
 /**
@@ -99,15 +99,18 @@ export default function AIFeedbackPanel({ text, postId, initialFeedbacks }) {
 
       {/* Persona tabs */}
       <div className={styles.tabs}>
-        {PERSONAS_CONFIG.map((p) => (
-          <button
-            key={p.key}
-            className={`${styles.tab} ${activeTab === p.key ? styles['tab--active'] : ''}`}
-            onClick={() => setActiveTab(p.key)}
-          >
-            {p.icon} {p.label}
-          </button>
-        ))}
+        {PERSONAS_CONFIG.map((p) => {
+          const Icon = p.icon;
+          return (
+            <button
+              key={p.key}
+              className={`${styles.tab} ${activeTab === p.key ? styles['tab--active'] : ''}`}
+              onClick={() => setActiveTab(p.key)}
+            >
+              <Icon size={14} /> {p.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Feedback content */}
@@ -124,7 +127,12 @@ export default function AIFeedbackPanel({ text, postId, initialFeedbacks }) {
       ) : activeFeedback ? (
         <div className={styles.feedback}>
           <div className={styles['feedback-persona']}>
-            <span className={styles['persona-icon']}>{activePersona?.icon}</span>
+            <span className={styles['persona-icon']}>
+              {(() => {
+                const Icon = activePersona?.icon;
+                return Icon ? <Icon size={18} /> : null;
+              })()}
+            </span>
             {activePersona?.label} Perspective
           </div>
           <div

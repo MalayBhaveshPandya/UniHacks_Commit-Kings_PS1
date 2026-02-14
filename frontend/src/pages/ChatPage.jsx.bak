@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow, format, isValid } from 'date-fns';
 import {
   Hash,
@@ -34,7 +34,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chat.service';
 import { aiService } from '../services/ai.service';
-import { socketService } from '../services/socket.service';
 import Avatar, { getColor } from '../components/shared/Avatar';
 import Button from '../components/shared/Button';
 import AnonymousToggle from '../components/shared/AnonymousToggle';
@@ -172,61 +171,6 @@ export default function ChatPage() {
     load();
   }, []);
 
-  // ---- Socket.IO: connect on mount, disconnect on unmount ----
-  useEffect(() => {
-    socketService.connect();
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
-
-  // ---- Socket.IO: join/leave room & listen for new messages ----
-  useEffect(() => {
-    if (!activeConvId) return;
-
-    // Join the conversation room
-    socketService.joinRoom(activeConvId);
-
-    const socket = socketService.getSocket();
-    const handleReconnection = () => {
-      console.log(`[ChatPage] Socket reconnected using logic, re-joining room: ${activeConvId}`);
-      socketService.joinRoom(activeConvId);
-    };
-
-    if (socket) {
-      socket.on('connect', handleReconnection);
-    }
-
-    // Listen for real-time messages from other users
-    const unsubscribe = socketService.onNewMessage((data) => {
-      console.log('[ChatPage] Message received event triggered', data);
-      if (data.conversationId === activeConvId) {
-        setMessages((prev) => {
-          // Deduplicate: if the message already exists (sender added it optimistically), skip
-          if (prev.some((m) => m._id === data.message._id)) return prev;
-          return [...prev, data.message];
-        });
-
-        // Also update the conversation sidebar lastMessage
-        setConversations((prev) =>
-          prev.map((c) =>
-            c._id === activeConvId
-              ? { ...c, lastMessage: { text: data.message.text, createdAt: data.message.createdAt } }
-              : c
-          )
-        );
-      }
-    });
-
-    return () => {
-      socketService.leaveRoom(activeConvId);
-      if (socket) {
-        socket.off('connect', handleReconnection);
-      }
-      unsubscribe();
-    };
-  }, [activeConvId]);
-
   // Load messages when activeConvId changes
   useEffect(() => {
     if (!activeConvId) return;
@@ -242,29 +186,6 @@ export default function ChatPage() {
       }
     };
     load();
-
-    // Polling fallback to ensure updates
-    let isMounted = true;
-    let timeoutId;
-
-    const pollMessages = async () => {
-      try {
-        const data = await chatService.getMessages(activeConvId);
-        if (isMounted) {
-          setMessages(data.messages);
-        }
-      } catch (err) {
-        console.error('Polling error:', err);
-      } finally {
-        if (isMounted) {
-          timeoutId = setTimeout(pollMessages, 3000); // Poll every 3 seconds
-        }
-      }
-    };
-
-    // Start polling after initial load
-    timeoutId = setTimeout(pollMessages, 3000);
-
     setSelectedPersonas([]);
     setShowGroupInfo(false);
     setShowInsightsPanel(false);
@@ -272,11 +193,6 @@ export default function ChatPage() {
     setChatSummary('');
     setSummaryQA([]);
     setGroupDetails(null);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-    };
   }, [activeConvId]);
 
   // Scroll to bottom on new messages
@@ -446,11 +362,7 @@ export default function ChatPage() {
         text: messageText,
         anonymous: isTeamChannel ? anonymous : false,
       });
-      setMessages((prev) => {
-        // Deduplicate: socket event may have already added this message
-        if (prev.some((m) => m._id === message._id)) return prev;
-        return [...prev, message];
-      });
+      setMessages((prev) => [...prev, message]);
       setText('');
       setAnonymous(false);
 

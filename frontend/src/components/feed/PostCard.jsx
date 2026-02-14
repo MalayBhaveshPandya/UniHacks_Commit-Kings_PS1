@@ -13,6 +13,7 @@ import Avatar from '../shared/Avatar';
 import ReactionBar from './ReactionBar';
 import CommentSection from './CommentSection';
 import AIFeedbackPanel from './AIFeedbackPanel';
+import FormattedText from '../shared/FormattedText';
 import styles from './PostCard.module.css';
 
 export default function PostCard({ post, onReact, onComment, onDelete, onMarkInsight }) {
@@ -38,6 +39,14 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
 
   return (
     <article className={styles.card}>
+      {/* Insight Badge (Top Ribbon/Corner) */}
+      {post.isInsight && (
+        <div className={styles['insight-ribbon']}>
+          <Lightbulb size={12} fill="currentColor" />
+          <span>Insightful</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className={styles.header}>
         <div className={styles['header-left']}>
@@ -63,13 +72,6 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
         </div>
 
         <div className={styles['header-right']} ref={menuRef}>
-          {/* Insight badge inline */}
-          {post.isInsight && (
-            <span className={styles['insight-badge']}>
-              <Lightbulb size={10} /> Insight
-            </span>
-          )}
-
           {/* Menu button */}
           {hasMenuItems && (
             <>
@@ -114,7 +116,9 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
       </div>
 
       {/* Content */}
-      <div className={styles.content}>{post.content}</div>
+      <div className={styles.content}>
+        <FormattedText text={post.content} />
+      </div>
 
       {/* Tags */}
       {post.tags?.length > 0 && (
@@ -127,8 +131,17 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
         </div>
       )}
 
-      {/* Reactions */}
-      <ReactionBar reactions={post.reactions} onReact={(key) => onReact?.(post._id, key)} />
+      {/* Reactions & Stats */}
+      <div className={styles['reaction-area']}>
+        <ReactionBar reactions={post.reactions} onReact={(key) => onReact?.(post._id, key)} />
+
+        {/* Comment Count Indicator */}
+        {post.comments?.length > 0 && (
+          <div className={styles['comment-count']}>
+            <span>{post.comments.length} comments</span>
+          </div>
+        )}
+      </div>
 
       {/* Footer actions */}
       <div className={styles.footer}>
@@ -138,7 +151,7 @@ export default function PostCard({ post, onReact, onComment, onDelete, onMarkIns
             onClick={() => setShowComments(!showComments)}
           >
             <MessageCircle size={14} />
-            {post.comments?.length > 0 ? `${post.comments.length} Comments` : 'Comment'}
+            Comment
           </button>
 
           {post.aiToggle && (

@@ -6,7 +6,7 @@ const COLORS = [
   '#A78BFA', '#F472B6', '#22D3EE', '#FB923C',
 ];
 
-function getColor(name) {
+export function getColor(name) {
   if (!name) return COLORS[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {

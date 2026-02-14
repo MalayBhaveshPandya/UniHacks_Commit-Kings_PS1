@@ -6,7 +6,10 @@ import {
   UserCircle,
   PanelLeftClose,
   PanelLeftOpen,
+  Moon,
+  Sun,
 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
@@ -18,6 +21,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const sidebarClass = [
     styles.sidebar,
@@ -63,8 +67,23 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen }) {
 
       {/* Footer */}
       <div className={styles.footer}>
-        <button className={styles['collapse-btn']} onClick={onToggle} aria-label="Toggle sidebar">
+        <button
+          className={styles['footer-btn']}
+          onClick={toggleTheme}
+          title={collapsed ? "Toggle Theme" : undefined}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+
+        <button
+          className={styles['footer-btn']}
+          onClick={onToggle}
+          aria-label="Toggle sidebar"
+          title={collapsed ? "Expand Sidebar" : undefined}
+        >
           {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+          {!collapsed && <span>Collapse</span>}
         </button>
       </div>
     </aside>

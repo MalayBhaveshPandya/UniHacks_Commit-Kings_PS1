@@ -57,22 +57,7 @@
   gap: var(--space-3);
 }
 
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  transition: all var(--duration-fast) var(--ease-out);
-  cursor: pointer;
-}
 
-.theme-toggle:hover {
-  background: var(--accent-muted);
-  color: var(--accent);
-}
 
 .user-btn {
   display: flex;

@@ -7,9 +7,28 @@
   animation: slideUp var(--duration-slow) var(--ease-out) both;
 }
 
+.composer-title {
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-2);
+}
+
+.composer-title h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  margin: 0;
+}
+
 .composer-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
@@ -17,6 +36,10 @@
 .composer-input {
   width: 100%;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: relative;
 }
 
 .textarea {
@@ -46,13 +69,58 @@
   font-family: var(--font-display);
 }
 
+/* Formatting tools */
+.formatting-tools {
+  display: flex;
+  gap: var(--space-2);
+  position: relative;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+  border-color: var(--border-subtle);
+}
+
+.emoji-picker-popover {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-lg);
+}
+
+.emoji-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 49;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: var(--space-4);
+  margin-top: var(--space-2);
   gap: var(--space-3);
   flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .toolbar-left {

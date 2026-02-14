@@ -5,7 +5,6 @@ const REACTIONS = [
   { key: 'like', icon: ThumbsUp, label: 'Like' },
   { key: 'dislike', icon: ThumbsDown, label: 'Dislike' },
   { key: 'repost', icon: Repeat2, label: 'Repost' },
-  { key: 'insightful', icon: Lightbulb, label: 'Insightful' },
   { key: 'fire', icon: Flame, label: 'Fire' },
 ];
 
